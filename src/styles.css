@@ -1,1 +1,212 @@
-/* You can add global styles to this file, and also import other style files */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #f3f6f8;
+  --bg-strong: #e8eef2;
+  --surface: #ffffff;
+  --surface-soft: #f7fafc;
+  --text: #18222d;
+  --text-soft: #5d6a76;
+  --line: #dbe4ea;
+
+  --primary: #0e7a72;
+  --primary-strong: #0a615a;
+  --accent: #f59e0b;
+  --danger: #dc2626;
+  --success: #15803d;
+
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --shadow-sm: 0 6px 20px rgba(16, 36, 52, 0.08);
+  --shadow-md: 0 22px 52px rgba(16, 36, 52, 0.14);
+}
+
+html.dark-mode {
+  --bg: #0f161b;
+  --bg-strong: #1a252f;
+  --surface: #17222c;
+  --surface-soft: #1f2d38;
+  --text: #e4edf3;
+  --text-soft: #94a6b5;
+  --line: #2c3d49;
+  --primary: #22b3a7;
+  --primary-strong: #1a9087;
+  --accent: #f4a826;
+  --danger: #f87171;
+  --success: #4ade80;
+  --shadow-sm: 0 10px 24px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 24px 56px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+  background:
+    radial-gradient(1000px 380px at 90% -10%, rgba(14, 122, 114, 0.14), transparent),
+    radial-gradient(850px 300px at -10% 120%, rgba(245, 158, 11, 0.14), transparent),
+    var(--bg);
+  color: var(--text);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+
+.page-shell {
+  width: min(1160px, calc(100% - 2rem));
+  margin: 1.15rem auto;
+  background: color-mix(in srgb, var(--surface) 95%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 84%, #fff 16%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.page-content {
+  padding: 1.2rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.page-title {
+  font-size: clamp(1.35rem, 2vw, 2rem);
+}
+
+.page-subtitle,
+.text-muted {
+  color: var(--text-soft);
+}
+
+.surface-card,
+.soft-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-solid,
+.btn-primary {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(125deg, var(--primary), var(--primary-strong));
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  padding: 0.72rem 1.15rem;
+  cursor: pointer;
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.btn-solid:hover,
+.btn-primary:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.btn-solid:disabled,
+.btn-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+.btn-outline,
+.btn-ghost {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.66rem 1rem;
+  cursor: pointer;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.metric-card {
+  padding: 0.9rem;
+}
+
+.metric-card .label {
+  color: var(--text-soft);
+  font-size: 0.78rem;
+}
+
+.metric-value {
+  margin-top: 0.35rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+}
+
+.metric-value.income {
+  color: var(--success);
+}
+
+.metric-value.expense {
+  color: var(--danger);
+}
+
+@media (max-width: 980px) {
+  .page-shell {
+    width: calc(100% - 1rem);
+    margin: 0.6rem auto;
+    border-radius: 18px;
+  }
+
+  .page-content {
+    padding: 0.9rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}

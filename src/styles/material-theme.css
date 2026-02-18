@@ -1,0 +1,119 @@
+/* Material Design Theme Configuration */
+/* This file provides Material Design styling that works across all components */
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background-color: var(--mdc-theme-background, #fafafa);
+  color: var(--mdc-theme-text-primary-on-background, rgba(0, 0, 0, 0.87));
+}
+
+/* Material Design Elevation Shadows */
+.mat-elevation-z0 {
+  box-shadow: none;
+}
+
+.mat-elevation-z1 {
+  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+              0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+              0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+}
+
+.mat-elevation-z2 {
+  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.2),
+              0px 2px 2px 0px rgba(0, 0, 0, 0.14),
+              0px 1px 5px 0px rgba(0, 0, 0, 0.12);
+}
+
+.mat-elevation-z4 {
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+              0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+              0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+}
+
+/* Material Cards */
+.mat-card {
+  border-radius: 4px;
+  box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+              0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+              0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+}
+
+/* Material Buttons */
+button[mat-button],
+button[mat-raised-button],
+button[mat-stroked-button],
+button[mat-flat-button] {
+  text-transform: uppercase;
+  font-weight: 500;
+  letter-spacing: 0.0125em;
+  border-radius: 4px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Material Form Fields */
+.mat-form-field {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-radius: 4px;
+}
+
+/* Material Toolbar */
+.mat-toolbar {
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2),
+              0px 4px 5px 0px rgba(0, 0, 0, 0.14),
+              0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+}
+
+/* Dark Mode Material */
+:host-context(.dark-mode) {
+  --mdc-theme-background: #121212;
+  --mdc-theme-text-primary-on-background: #ffffff;
+  --mdc-theme-surface: #1e1e1e;
+}
+
+:host-context(.dark-mode) html,
+:host-context(.dark-mode) body {
+  background-color: #121212;
+  color: #ffffff;
+}
+
+:host-context(.dark-mode) .mat-card {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+:host-context(.dark-mode) .mat-toolbar {
+  background-color: #1e1e1e;
+  color: #ffffff;
+}
+
+/* Material Ripple Color */
+.mat-button-focus-overlay,
+.mat-raised-button-focus-overlay {
+  background-color: currentColor;
+  opacity: 0.08;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--mdc-theme-background, #f5f5f5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary, #1f97d8);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark, #1565c0);
+}

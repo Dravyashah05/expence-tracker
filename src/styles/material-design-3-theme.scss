@@ -1,0 +1,21 @@
+// Material Design 3 Theme for Expense Tracker
+@use '@angular/material' as mat;
+
+// Define Material 3 Theme (Using Default System Colors to ensure valid build)
+// Custom colors are handled via CSS variables in src/styles/md3-global.css
+$md3-theme: mat.define-theme((color: (theme-type: light,
+        use-system-variables: true,
+      ),
+      typography: (brand-family: 'Roboto',
+        plain-family: 'Roboto',
+        use-system-variables: true,
+      ),
+      density: (scale: 0)));
+
+// Apply the theme to all Angular Material components
+@include mat.all-component-themes($md3-theme);
+
+// Expose theme colors as CSS variables for custom usage
+.md3-container {
+  @include mat.all-component-colors($md3-theme);
+}

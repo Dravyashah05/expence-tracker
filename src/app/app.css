@@ -1,0 +1,28 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+.app-layout {
+  min-height: 100vh;
+}
+
+.app-content {
+  padding: 0.4rem 0 1.1rem;
+}
+
+.app-content.login-view {
+  padding-top: 0;
+}
+
+.app-loader-overlay {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 0.6rem;
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  color: var(--text-soft);
+  font-weight: 600;
+  z-index: 50;
+}

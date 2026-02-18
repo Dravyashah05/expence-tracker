@@ -1,16 +1,91 @@
-# ExpenceTracker
+# 💰 Expense Tracker Application
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1.
+A modern, feature-rich personal finance tracker built with **Angular 21** and **TypeScript**. Track your income and expenses, view detailed analytics, and export your financial data.
 
-## Development server
+## ✨ Key Features
 
-To start a local development server, run:
+- 🔐 **User Authentication** - Secure login and registration
+- 💵 **Expense & Income Tracking** - Add and manage transactions
+- 📊 **Financial Analytics** - Visual charts and category breakdown
+- 📤 **Data Export** - Export as CSV, JSON, or PDF
+- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
+- ⚡ **Real-time Updates** - Instant calculations with Angular Signals
+- 💾 **Local Storage** - No server required for testing
+
+## 🚀 Quick Start
+
+### Prerequisites
+- Node.js v18+
+- npm v9+
+
+### Installation & Run
 
 ```bash
-ng serve
+# Install dependencies
+npm install
+
+# Start development server
+ng serve --port 4300
+
+# Open in browser
+http://localhost:4300
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+### Demo Login
+- **Email:** `demo@example.com`
+- **Password:** `demo123`
+
+## 📁 Project Structure
+
+```
+src/app/
+├── models/              # Data models
+├── services/            # Business logic
+├── guards/              # Route protection
+├── components/
+│   ├── login/          # Authentication
+│   ├── dashboard/      # Main layout
+│   ├── add-transaction/# Form to add transactions
+│   ├── analytics/      # Charts & reports
+│   └── export-data/    # Export functionality
+└── app.routes.ts       # Routing configuration
+```
+
+## 📚 Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [QUICK_START.md](QUICK_START.md) | 5-minute setup guide |
+| [FEATURES.md](FEATURES.md) | Detailed feature documentation |
+| [API_REFERENCE.md](API_REFERENCE.md) | Service and component APIs |
+| [BUILD_SUMMARY.md](BUILD_SUMMARY.md) | Project completion details |
+| [DEPLOYMENT.md](DEPLOYMENT.md) | Production deployment guide |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues & solutions |
+| [FILE_INVENTORY.md](FILE_INVENTORY.md) | Complete file listing |
+
+## 🛠️ Development
+
+### Start Development Server
+
+```bash
+ng serve --port 4300
+```
+
+The application will automatically reload when you modify source files.
+
+### Generate New Component
+
+```bash
+ng generate component component-name
+```
+
+### Build for Production
+
+```bash
+ng build --configuration production
+```
+
+Output will be in `dist/expence-tracker/browser/`.
 
 ## Code scaffolding
 
