@@ -1,18 +1,19 @@
-# 💰 Expense Tracker Application
+﻿# Expense Tracker Application
 
-A modern, feature-rich personal finance tracker built with **Angular 21** and **TypeScript**. Track your income and expenses, view detailed analytics, and export your financial data.
+A modern personal finance tracker built with **Angular 21** and **TypeScript**. Track income and expenses, view analytics, and export your data.
 
-## ✨ Key Features
+## Key Features
 
-- 🔐 **User Authentication** - Secure login and registration
-- 💵 **Expense & Income Tracking** - Add and manage transactions
-- 📊 **Financial Analytics** - Visual charts and category breakdown
-- 📤 **Data Export** - Export as CSV, JSON, or PDF
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile
-- ⚡ **Real-time Updates** - Instant calculations with Angular Signals
-- 💾 **Local Storage** - No server required for testing
+- **User authentication** - Register and sign in with secure credentials.
+- **Profile management** - Edit profile details, change password, and upload a compressed profile image (under 1 MB).
+- **Theme and localization** - Dark mode, theme color, currency, and language preferences.
+- **Expense and income tracking** - Add, update, and delete transactions with quick amounts.
+- **Analytics** - Spend summaries and category insights.
+- **Data export** - Export CSV, JSON, and text reports.
+- **Responsive UI** - Works on desktop, tablet, and mobile.
+- **Loading feedback** - Small in-theme loaders for key actions and page reloads.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js v18+
@@ -24,18 +25,18 @@ A modern, feature-rich personal finance tracker built with **Angular 21** and **
 # Install dependencies
 npm install
 
-# Start development server
-ng serve --port 4300
+# Start frontend + API server
+npm run dev
 
 # Open in browser
-http://localhost:4300
+http://localhost:4200
 ```
 
 ### Demo Login
 - **Email:** `demo@example.com`
 - **Password:** `demo123`
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/app/
@@ -47,11 +48,12 @@ src/app/
 │   ├── dashboard/      # Main layout
 │   ├── add-transaction/# Form to add transactions
 │   ├── analytics/      # Charts & reports
-│   └── export-data/    # Export functionality
+│   ├── export-data/    # Export functionality
+│   └── profile/        # Profile management
 └── app.routes.ts       # Routing configuration
 ```
 
-## 📚 Documentation
+## Documentation
 
 | Document | Purpose |
 |----------|---------|
@@ -63,12 +65,12 @@ src/app/
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues & solutions |
 | [FILE_INVENTORY.md](FILE_INVENTORY.md) | Complete file listing |
 
-## 🛠️ Development
+## Development
 
 ### Start Development Server
 
 ```bash
-ng serve --port 4300
+npm run dev
 ```
 
 The application will automatically reload when you modify source files.
