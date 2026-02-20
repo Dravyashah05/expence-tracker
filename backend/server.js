@@ -84,6 +84,7 @@ function normalizeTransaction(doc) {
     description: data.description || '',
     date,
     paymentMethod: data.paymentMethod || 'Cash',
+    paymentSource: data.paymentSource || '',
   };
 }
 
@@ -275,7 +276,7 @@ app.get('/api/transactions/:userId', async (req, res) => {
 app.post('/api/transactions/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
-    const { type, category, amount, date, description, paymentMethod } = req.body;
+    const { type, category, amount, date, description, paymentMethod, paymentSource } = req.body;
 
     if (!validateRequired([type, category, amount, date])) {
       return res.status(400).json({ message: 'Type, category, amount, and date are required.' });
@@ -289,6 +290,7 @@ app.post('/api/transactions/:userId', async (req, res) => {
       date: new Date(date).toISOString(),
       description: description || '',
       paymentMethod: paymentMethod || 'Cash',
+      paymentSource: paymentSource || '',
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
     };

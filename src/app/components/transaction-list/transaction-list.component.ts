@@ -131,6 +131,9 @@ import { AppCurrencyPipe } from '../../pipes/app-currency.pipe';
                         <p class="body-sm" style="color: var(--md3-on-surface-variant); margin: 4px 0 0 0;">
                             {{ transaction.date | date: 'medium' }}
                         </p>
+                        <p class="body-sm" style="color: var(--md3-on-surface-variant); margin: 4px 0 0 0;">
+                            {{ getPaymentLabel(transaction) }}
+                        </p>
                         @if (transaction.description) {
                             <p class="body-sm" style="color: var(--md3-on-surface-variant); margin: 4px 0 0 0;">
                             {{ transaction.description }}
@@ -504,6 +507,12 @@ export class TransactionListComponent {
 
   editTransaction(transaction: Transaction) {
     console.log('Edit transaction:', transaction);
+  }
+
+  getPaymentLabel(transaction: Transaction): string {
+    const method = transaction.paymentMethod || 'Cash';
+    if (!transaction.paymentSource) return method;
+    return `${method} - ${transaction.paymentSource}`;
   }
 
   async deleteTransaction(id: string) {

@@ -6,6 +6,7 @@ export interface Transaction {
   description: string;
   date: Date;
   paymentMethod?: 'Cash' | 'Card' | 'Bank';
+  paymentSource?: string;
 }
 
 export interface User {

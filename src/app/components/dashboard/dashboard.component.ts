@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TransactionService } from '../../services/transaction.service';
 import { AppCurrencyPipe } from '../../pipes/app-currency.pipe';
 import { LoaderComponent } from '../loader/loader.component';
+import { Transaction } from '../../models/transaction';
 
 @Component({
   selector: 'app-dashboard',
@@ -75,6 +76,7 @@ import { LoaderComponent } from '../loader/loader.component';
                       {{ transaction.category }}
                     </p>
                     <small>{{ transaction.date | date:'mediumDate' }} {{ transaction.date | date:'shortTime' }}</small>
+                    <small>{{ getPaymentLabel(transaction) }}</small>
                   </div>
                 </div>
 
@@ -317,5 +319,11 @@ export class DashboardComponent {
 
   getCategoryIcon(category: string): string {
     return this.categoryIcons[category] || 'label';
+  }
+
+  getPaymentLabel(transaction: Transaction): string {
+    const method = transaction.paymentMethod || 'Cash';
+    if (!transaction.paymentSource) return method;
+    return `${method} - ${transaction.paymentSource}`;
   }
 }

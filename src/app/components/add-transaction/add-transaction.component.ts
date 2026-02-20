@@ -124,7 +124,25 @@ import { LoaderComponent } from '../loader/loader.component';
                 </button>
               }
             </div>
+            <p class="method-preview">{{ selectedPaymentPreview() }}</p>
           </div>
+
+          @if (isPaymentSourceRequired()) {
+            <label class="payment-source">
+              <span>{{ paymentSourceLabel() }}</span>
+              @if (paymentSourceOptions().length > 0) {
+                <select formControlName="paymentSource">
+                  <option value="">Select {{ paymentSourceLabel().toLowerCase() }}</option>
+                  @for (item of paymentSourceOptions(); track item) {
+                    <option [value]="item">{{ item }}</option>
+                  }
+                </select>
+              } @else {
+                <input type="text" formControlName="paymentSource" [placeholder]="'Enter ' + paymentSourceLabel().toLowerCase()">
+                <p class="empty-source">No saved {{ paymentSourceLabel().toLowerCase() }} found in Settings. You can enter it manually.</p>
+              }
+            </label>
+          }
 
           @if (showSuccess()) {
             <p class="saved">Transaction saved successfully.</p>
@@ -216,17 +234,25 @@ import { LoaderComponent } from '../loader/loader.component';
 
     .amount-row {
       display: flex;
-      align-items: flex-end;
-      gap: 0.35rem;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     .amount-row i {
       font-style: normal;
-      color: var(--primary-strong);
-      font-size: 1.9rem;
+      color: #fff;
+      font-size: 1rem;
       font-weight: 800;
       line-height: 1;
-      margin-bottom: 0.16rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      border: 1px solid color-mix(in srgb, var(--primary) 65%, var(--line));
+      box-shadow: 0 8px 16px color-mix(in srgb, var(--primary) 24%, transparent);
+      flex-shrink: 0;
     }
 
     .amount-row input {
@@ -236,7 +262,9 @@ import { LoaderComponent } from '../loader/loader.component';
       background: transparent;
       font-size: 2.2rem;
       font-weight: 800;
-      padding: 0.22rem 0;
+      padding: 0.22rem 0 0.1rem;
+      min-width: 0;
+      width: 100%;
     }
 
     .amount-row input:focus {
@@ -459,11 +487,40 @@ import { LoaderComponent } from '../loader/loader.component';
       border: 1px solid color-mix(in srgb, var(--primary) 36%, var(--line));
     }
 
+    .method-preview {
+      margin: 0.1rem 0 0;
+      color: var(--text-soft);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
     .saved {
       margin: 0;
       color: var(--success);
       font-weight: 700;
       text-align: center;
+    }
+
+    .payment-source {
+      display: grid;
+      gap: 0.36rem;
+    }
+
+    .payment-source > span {
+      color: var(--text-soft);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .empty-source {
+      margin: 0;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
+      color: var(--text-soft);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.62rem 0.7rem;
     }
 
     @media (max-width: 700px) {
@@ -485,6 +542,8 @@ export class AddTransactionComponent implements OnInit {
   isSaving = signal(false);
   categorySearch = signal('');
   paymentMethods: Array<'Cash' | 'Card' | 'Bank'> = ['Cash', 'Card', 'Bank'];
+  cardOptions = computed(() => this.settingsService.cards());
+  bankAccountOptions = computed(() => this.settingsService.bankAccounts());
 
   categories = signal<Array<{ name: string; icon: string; kind: 'income' | 'expense' | 'both' }>>([
     { name: 'Salary', icon: 'payments', kind: 'income' },
@@ -544,6 +603,31 @@ export class AddTransactionComponent implements OnInit {
     return !this.categories().some(cat => cat.name.toLowerCase() === name);
   });
 
+  isPaymentSourceRequired = computed(() => {
+    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
+    return method === 'Card' || method === 'Bank';
+  });
+
+  paymentSourceLabel = computed(() => {
+    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
+    return method === 'Bank' ? 'Bank Account' : 'Card';
+  });
+
+  paymentSourceOptions = computed(() => {
+    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
+    if (method === 'Bank') return this.bankAccountOptions();
+    if (method === 'Card') return this.cardOptions();
+    return [];
+  });
+
+  selectedPaymentPreview = computed(() => {
+    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
+    const source = String(this.transactionForm?.get('paymentSource')?.value || '').trim();
+    if (!method || method === 'Cash') return 'Selected: Cash';
+    if (!source) return `Selected: ${method}`;
+    return `Selected: ${method} - ${source}`;
+  });
+
   ngOnInit(): void {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -555,7 +639,10 @@ export class AddTransactionComponent implements OnInit {
       date: [today, Validators.required],
       description: [''],
       paymentMethod: ['Cash', Validators.required],
+      paymentSource: [''],
     });
+
+    this.syncPaymentSourceRequirement();
   }
 
   selectType(type: 'income' | 'expense'): void {
@@ -589,6 +676,7 @@ export class AddTransactionComponent implements OnInit {
 
   selectPaymentMethod(method: 'Cash' | 'Card' | 'Bank'): void {
     this.transactionForm.patchValue({ paymentMethod: method });
+    this.syncPaymentSourceRequirement();
   }
 
   isQuickAmountSelected(amount: number): boolean {
@@ -611,6 +699,26 @@ export class AddTransactionComponent implements OnInit {
     this.router.navigate(['/dashboard']);
   }
 
+  private syncPaymentSourceRequirement(): void {
+    const paymentMethod = this.transactionForm.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank';
+    const control = this.transactionForm.get('paymentSource');
+    if (!control) return;
+
+    if (paymentMethod === 'Card' || paymentMethod === 'Bank') {
+      control.setValidators([Validators.required]);
+      const options = paymentMethod === 'Card' ? this.cardOptions() : this.bankAccountOptions();
+      const current = String(control.value || '');
+      if (!current || !options.includes(current)) {
+        control.setValue(options[0] || '');
+      }
+    } else {
+      control.clearValidators();
+      control.setValue('');
+    }
+
+    control.updateValueAndValidity({ emitEvent: false });
+  }
+
   async onSubmit(): Promise<void> {
     if (this.transactionForm.invalid) return;
 
@@ -624,7 +732,8 @@ export class AddTransactionComponent implements OnInit {
         category: value.category,
         date: new Date(value.date),
         description: value.description || '',
-        paymentMethod: value.paymentMethod
+        paymentMethod: value.paymentMethod,
+        paymentSource: value.paymentSource || ''
       });
 
       if (!success) return;

@@ -137,16 +137,20 @@ import { MatIconModule } from '@angular/material/icon';
                 <strong>{{ settingsService.currency() }}</strong>
               </div>
               <div>
-                <span class="label">Language</span>
-                <strong>{{ settingsService.language() }}</strong>
-              </div>
-              <div>
                 <span class="label">Notifications</span>
                 <strong>{{ settingsService.notification() ? 'Enabled' : 'Off' }}</strong>
               </div>
               <div>
                 <span class="label">Auto-save</span>
                 <strong>{{ settingsService.autoSave() ? 'On' : 'Off' }}</strong>
+              </div>
+              <div>
+                <span class="label">Bank Accounts</span>
+                <strong>{{ settingsService.bankAccounts().length }}</strong>
+              </div>
+              <div>
+                <span class="label">Cards</span>
+                <strong>{{ settingsService.cards().length }}</strong>
               </div>
             </div>
 

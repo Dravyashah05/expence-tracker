@@ -165,12 +165,14 @@ export class ExportDataComponent {
 
   exportCSV(): void {
     const transactions = this.transactionService.allTransactions();
-    const headers = ['ID', 'Type', 'Category', 'Amount', 'Description', 'Date'];
+    const headers = ['ID', 'Type', 'Category', 'Amount', 'Payment Method', 'Payment Source', 'Description', 'Date'];
     const rows = transactions.map(t => [
       t.id,
       t.type,
       t.category,
       t.amount,
+      t.paymentMethod || 'Cash',
+      t.paymentSource || '',
       t.description,
       new Date(t.date).toLocaleDateString()
     ]);
@@ -219,7 +221,7 @@ export class ExportDataComponent {
     report += `TRANSACTIONS\n`;
 
     transactions.forEach(t => {
-      report += `${new Date(t.date).toLocaleDateString()} | ${t.type.toUpperCase()} | ${t.category} | ${t.amount} | ${t.description || '-'}\n`;
+      report += `${new Date(t.date).toLocaleDateString()} | ${t.type.toUpperCase()} | ${t.category} | ${t.amount} | ${t.paymentMethod || 'Cash'} ${t.paymentSource || ''} | ${t.description || '-'}\n`;
     });
 
     this.downloadFile(report, 'expense-report.txt', 'text/plain');

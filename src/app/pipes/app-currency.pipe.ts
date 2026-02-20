@@ -1,5 +1,5 @@
-import { Pipe, PipeTransform, inject, LOCALE_ID } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { Pipe, PipeTransform, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SettingsService } from '../services/settings.service';
 
 @Pipe({
@@ -8,12 +8,25 @@ import { SettingsService } from '../services/settings.service';
   pure: false
 })
 export class AppCurrencyPipe implements PipeTransform {
-  private locale = inject(LOCALE_ID) as string;
-  private currencyPipe = new CurrencyPipe(this.locale);
+  private platformId = inject(PLATFORM_ID);
   private settingsService = inject(SettingsService);
 
   transform(value: number | null | undefined, digitsInfo: string = '1.0-2'): string {
     const currencyCode = this.settingsService.currency();
-    return this.currencyPipe.transform(value ?? 0, currencyCode, 'symbol', digitsInfo) ?? '';
+    const numericValue = Number(value ?? 0);
+    const locale = isPlatformBrowser(this.platformId) ? navigator.language : 'en-US';
+    const maxFractionDigits = this.extractMaxFractionDigits(digitsInfo);
+
+    return new Intl.NumberFormat(locale, {
+      style: 'currency',
+      currency: currencyCode,
+      maximumFractionDigits: maxFractionDigits
+    }).format(numericValue);
+  }
+
+  private extractMaxFractionDigits(digitsInfo: string): number {
+    const parts = digitsInfo.split('-');
+    const parsed = Number(parts[1]);
+    return Number.isFinite(parsed) ? parsed : 2;
   }
 }
