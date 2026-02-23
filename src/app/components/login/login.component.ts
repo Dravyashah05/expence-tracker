@@ -13,7 +13,7 @@ import { LoaderComponent } from '../loader/loader.component';
     <section class="page-shell login-shell">
       <div class="login-grid">
         <aside class="pitch">
-          <p class="eyebrow">Expense Tracker</p>
+          <p class="eyebrow">Rupee</p>
           <h1>Modern money habits start with clear daily visibility.</h1>
           <p class="text-muted">Review income, spot spending patterns, and keep your cashflow under control in one clean workspace.</p>
 

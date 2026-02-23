@@ -1,4 +1,4 @@
-﻿# Expense Tracker Application
+# Rupee Application
 
 A modern personal finance tracker built with **Angular 21** and **TypeScript**. Track income and expenses, view analytics, and export your data.
 
@@ -40,17 +40,17 @@ http://localhost:4200
 
 ```
 src/app/
-├── models/              # Data models
-├── services/            # Business logic
-├── guards/              # Route protection
-├── components/
-│   ├── login/          # Authentication
-│   ├── dashboard/      # Main layout
-│   ├── add-transaction/# Form to add transactions
-│   ├── analytics/      # Charts & reports
-│   ├── export-data/    # Export functionality
-│   └── profile/        # Profile management
-└── app.routes.ts       # Routing configuration
++-- models/              # Data models
++-- services/            # Business logic
++-- guards/              # Route protection
++-- components/
+�   +-- login/          # Authentication
+�   +-- dashboard/      # Main layout
+�   +-- add-transaction/# Form to add transactions
+�   +-- analytics/      # Charts & reports
+�   +-- export-data/    # Export functionality
+�   +-- profile/        # Profile management
++-- app.routes.ts       # Routing configuration
 ```
 
 ## Documentation
@@ -134,3 +134,4 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+

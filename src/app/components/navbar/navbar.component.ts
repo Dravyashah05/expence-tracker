@@ -12,9 +12,11 @@ import { AuthService } from '../../services/auth.service';
     <header class="nav-wrap">
       <div class="nav-shell">
         <a class="brand" routerLink="/dashboard">
-          <span class="brand-mark"><i></i></span>
+          <span class="brand-mark">
+            <img src="/rupee-logo.png" alt="Rupee logo">
+          </span>
           <span>
-            <strong>Expense Tracker</strong>
+            <strong>Rupee</strong>
             <small>Personal finance cockpit</small>
           </span>
         </a>
@@ -98,14 +100,15 @@ import { AuthService } from '../../services/auth.service';
       display: grid;
       place-items: center;
       flex-shrink: 0;
+      overflow: hidden;
     }
 
-    .brand-mark i {
-      width: 15px;
-      height: 15px;
-      border-radius: 4px;
-      border: 2px solid rgba(255, 255, 255, 0.85);
+    .brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       display: block;
+      background: #fff;
     }
 
     .links {
