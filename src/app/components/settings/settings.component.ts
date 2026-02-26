@@ -1,12 +1,13 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
 import { SettingsService } from '../../services/settings.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-settings',
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MatIconModule],
   template: `
     <section class="page-shell">
       <div class="page-content">
@@ -121,6 +122,14 @@ import { AuthService } from '../../services/auth.service';
               <input type="checkbox" [checked]="settingsService.autoSave()" (change)="toggleAutoSave($event)">
             </label>
 
+            <label class="row switch-row">
+              <span>
+                <strong>Transaction sounds</strong>
+                <small>Play coin sounds for income and expense entries.</small>
+              </span>
+              <input type="checkbox" [checked]="settingsService.transactionSounds()" (change)="toggleTransactionSounds($event)">
+            </label>
+
             <button class="btn-outline" type="button" (click)="resetSettings()">Reset Defaults</button>
           </section>
 
@@ -130,23 +139,33 @@ import { AuthService } from '../../services/auth.service';
                 <h2>Payment Sources</h2>
                 <p class="helper-text">Add multiple bank accounts and cards to use while creating transactions.</p>
               </div>
-              <span class="count-chip">{{ totalSources() }} total</span>
+              <span class="count-chip">
+                <mat-icon style="font-size:14px;width:14px;height:14px;vertical-align:middle;">account_balance_wallet</mat-icon>
+                {{ totalSources() }} total
+              </span>
             </div>
 
             <div class="source-card">
               <div class="source-title-row">
-                <strong>Bank Accounts</strong>
+                <strong><mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle;">account_balance</mat-icon>Bank Accounts</strong>
                 <small>{{ settingsService.bankAccounts().length }} saved</small>
               </div>
               <div class="merge-row">
-                <input
-                  type="text"
-                  [value]="newBankAccount"
-                  (input)="onBankInput($event)"
-                  placeholder="e.g. Chase Checking"
-                  (keydown.enter)="addBankAccount($event)"
-                >
-                <button type="button" class="btn-outline add-btn" (click)="addBankAccount()" [disabled]="!canAddBankAccount(newBankAccount)">Add</button>
+                <div class="input-wrap" style="display:flex;align-items:center;gap:.42rem;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 .65rem;">
+                  <mat-icon style="font-size:16px;width:16px;height:16px;opacity:.8;flex-shrink:0;">domain</mat-icon>
+                  <input
+                    type="text"
+                    [value]="newBankAccount"
+                    (input)="onBankInput($event)"
+                    placeholder="e.g. Chase Checking"
+                    (keydown.enter)="addBankAccount($event)"
+                    style="border:0;background:transparent;padding:.7rem 0;width:100%;min-width:0;outline:none;"
+                  >
+                </div>
+                <button type="button" class="btn-outline add-btn" (click)="addBankAccount()" [disabled]="!canAddBankAccount(newBankAccount)">
+                  <mat-icon style="font-size:16px;width:16px;height:16px;">add</mat-icon>
+                  Add
+                </button>
               </div>
               <small class="input-hint">Tip: press Enter to add quickly.</small>
               @if (bankInputError) {
@@ -160,7 +179,9 @@ import { AuthService } from '../../services/auth.service';
                   @for (account of settingsService.bankAccounts(); track account) {
                     <div class="tag">
                       <span class="tag-text">{{ account }}</span>
-                      <button type="button" class="tag-remove" (click)="removeBankAccount(account)" aria-label="Remove bank account">x</button>
+                      <button type="button" class="tag-remove" (click)="removeBankAccount(account)" aria-label="Remove bank account">
+                        <mat-icon>close</mat-icon>
+                      </button>
                     </div>
                   }
                 </div>
@@ -169,18 +190,25 @@ import { AuthService } from '../../services/auth.service';
 
             <div class="source-card">
               <div class="source-title-row">
-                <strong>Cards</strong>
+                <strong><mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle;">credit_card</mat-icon>Cards</strong>
                 <small>{{ settingsService.cards().length }} saved</small>
               </div>
               <div class="merge-row">
-                <input
-                  type="text"
-                  [value]="newCard"
-                  (input)="onCardInput($event)"
-                  placeholder="e.g. HDFC Visa 4421"
-                  (keydown.enter)="addCard($event)"
-                >
-                <button type="button" class="btn-outline add-btn" (click)="addCard()" [disabled]="!canAddCard(newCard)">Add</button>
+                <div class="input-wrap" style="display:flex;align-items:center;gap:.42rem;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 .65rem;">
+                  <mat-icon style="font-size:16px;width:16px;height:16px;opacity:.8;flex-shrink:0;">payments</mat-icon>
+                  <input
+                    type="text"
+                    [value]="newCard"
+                    (input)="onCardInput($event)"
+                    placeholder="e.g. HDFC Visa 4421"
+                    (keydown.enter)="addCard($event)"
+                    style="border:0;background:transparent;padding:.7rem 0;width:100%;min-width:0;outline:none;"
+                  >
+                </div>
+                <button type="button" class="btn-outline add-btn" (click)="addCard()" [disabled]="!canAddCard(newCard)">
+                  <mat-icon style="font-size:16px;width:16px;height:16px;">add</mat-icon>
+                  Add
+                </button>
               </div>
               <small class="input-hint">Tip: add card name and last 4 digits for easy selection.</small>
               @if (cardInputError) {
@@ -194,7 +222,9 @@ import { AuthService } from '../../services/auth.service';
                   @for (card of settingsService.cards(); track card) {
                     <div class="tag">
                       <span class="tag-text">{{ card }}</span>
-                      <button type="button" class="tag-remove" (click)="removeCard(card)" aria-label="Remove card">x</button>
+                      <button type="button" class="tag-remove" (click)="removeCard(card)" aria-label="Remove card">
+                        <mat-icon>close</mat-icon>
+                      </button>
                     </div>
                   }
                 </div>
@@ -517,7 +547,7 @@ import { AuthService } from '../../services/auth.service';
 
     .source-card {
       display: grid;
-      gap: 0.45rem;
+      gap: 0.5rem;
       border: 1px solid var(--line);
       border-radius: 14px;
       background: color-mix(in srgb, var(--surface) 92%, transparent);
@@ -534,6 +564,9 @@ import { AuthService } from '../../services/auth.service';
     .source-title-row strong {
       color: var(--text);
       font-size: 0.9rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
     }
 
     .source-title-row small {
@@ -915,11 +948,17 @@ export class SettingsComponent {
     this.settingsService.updateSetting('autoSave', target.checked);
   }
 
+  toggleTransactionSounds(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.settingsService.updateSetting('transactionSounds', target.checked);
+  }
+
   resetSettings(): void {
     this.settingsService.updateSetting('darkMode', false);
     this.settingsService.updateSetting('currency', 'USD');
     this.settingsService.updateSetting('notification', true);
     this.settingsService.updateSetting('autoSave', true);
+    this.settingsService.updateSetting('transactionSounds', true);
     this.settingsService.updateSetting('themeColor', 'Blue');
     this.settingsService.updateSetting('bankAccounts', []);
     this.settingsService.updateSetting('cards', []);

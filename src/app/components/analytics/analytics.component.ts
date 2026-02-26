@@ -52,15 +52,25 @@ import { LoaderComponent } from '../loader/loader.component';
               <h3>Monthly trend simulation</h3>
               <small>Week 1 to Week 4</small>
             </div>
-            <span>Income vs Expense</span>
+            <span class="chart-pill">Income vs Expense</span>
           </div>
 
           <div class="bars">
+            <div class="y-scale">
+              <span>100%</span>
+              <span>75%</span>
+              <span>50%</span>
+              <span>25%</span>
+            </div>
             @for (item of weeklyBars(); track item.week) {
               <div class="col">
-                <div class="pair">
-                  <span class="bar income" [style.height.px]="item.income"></span>
-                  <span class="bar expense" [style.height.px]="item.expense"></span>
+                <div class="pair" [attr.aria-label]="item.week + ' trend'">
+                  <span class="bar income" [style.height.%]="item.income">
+                    <em>{{ item.income }}%</em>
+                  </span>
+                  <span class="bar expense" [style.height.%]="item.expense">
+                    <em>{{ item.expense }}%</em>
+                  </span>
                 </div>
                 <small>{{ item.week }}</small>
               </div>
@@ -103,7 +113,10 @@ import { LoaderComponent } from '../loader/loader.component';
 
     .chart-wrap {
       margin-top: 1rem;
-      padding: 0.95rem;
+      padding: 1.2rem;
+      background:
+        radial-gradient(100% 70% at 100% 0%, color-mix(in srgb, var(--primary) 15%, transparent), transparent 60%),
+        linear-gradient(180deg, color-mix(in srgb, var(--card) 86%, #0c1a2a), var(--card));
     }
 
     .inline-loader {
@@ -130,36 +143,74 @@ import { LoaderComponent } from '../loader/loader.component';
     .chart-head span {
       color: var(--text-soft);
       font-weight: 600;
-      font-size: 0.78rem;
+      font-size: 0.8rem;
+    }
+
+    .chart-pill {
+      border: 1px solid color-mix(in srgb, var(--line) 70%, var(--primary));
+      border-radius: 999px;
+      padding: 0.35rem 0.7rem;
+      background: color-mix(in srgb, var(--card) 85%, var(--primary));
     }
 
     .bars {
-      border-top: 1px dashed var(--line);
-      padding-top: 0.95rem;
+      border-top: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
+      margin-top: 0.2rem;
+      padding-top: 1rem;
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.5rem;
+      grid-template-columns: 44px repeat(4, minmax(0, 1fr));
+      gap: 0.65rem;
       align-items: end;
-      min-height: 165px;
+      min-height: 210px;
+      background-image: linear-gradient(
+        to top,
+        color-mix(in srgb, var(--line) 22%, transparent) 1px,
+        transparent 1px
+      );
+      background-size: 100% 25%;
+    }
+
+    .y-scale {
+      height: 162px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-right: 0.2rem;
+    }
+
+    .y-scale span {
+      color: var(--text-soft);
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
     }
 
     .col {
-      display: grid;
-      justify-items: center;
-      gap: 0.35rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.45rem;
     }
 
     .pair {
-      min-height: 126px;
+      width: min(80px, 100%);
+      height: 162px;
       display: flex;
       align-items: end;
-      gap: 0.24rem;
+      justify-content: center;
+      gap: 0.45rem;
     }
 
     .bar {
-      width: 14px;
-      border-radius: 999px;
-      display: block;
+      width: 26px;
+      border-radius: 10px 10px 8px 8px;
+      display: inline-flex;
+      align-items: flex-start;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 10px 24px color-mix(in srgb, #000 32%, transparent);
+      min-height: 8px;
     }
 
     .bar.income {
@@ -170,13 +221,29 @@ import { LoaderComponent } from '../loader/loader.component';
       background: linear-gradient(180deg, color-mix(in srgb, var(--danger) 60%, #fff), var(--danger));
     }
 
+    .bar em {
+      position: absolute;
+      top: -1.2rem;
+      font-style: normal;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: color-mix(in srgb, var(--text-soft) 90%, #fff);
+      text-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    .col small {
+      font-weight: 700;
+    }
+
     .legend {
-      margin-top: 0.7rem;
+      margin-top: 0.95rem;
       display: inline-flex;
       gap: 1rem;
       color: var(--text-soft);
-      font-size: 0.8rem;
+      font-size: 0.78rem;
       font-weight: 700;
+      border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+      padding-top: 0.8rem;
     }
 
     .legend i {
@@ -197,7 +264,7 @@ import { LoaderComponent } from '../loader/loader.component';
 
     .spend-list {
       margin-top: 1rem;
-      padding: 0.95rem;
+      padding: 1.1rem;
     }
 
     .spend-list h3 {
@@ -210,7 +277,7 @@ import { LoaderComponent } from '../loader/loader.component';
       justify-content: space-between;
       align-items: center;
       gap: 0.8rem;
-      border-bottom: 1px solid var(--line);
+      border-bottom: 1px solid color-mix(in srgb, var(--line) 75%, transparent);
       padding: 0.7rem 0;
     }
 
@@ -248,11 +315,32 @@ import { LoaderComponent } from '../loader/loader.component';
 
     @media (max-width: 700px) {
       .bars {
-        min-height: 142px;
+        grid-template-columns: 32px repeat(4, minmax(0, 1fr));
+        min-height: 180px;
+        gap: 0.4rem;
+      }
+
+      .pair {
+        width: 100%;
+        gap: 0.25rem;
+      }
+
+      .bar {
+        width: min(22px, 42%);
+      }
+
+      .bar em {
+        font-size: 0.6rem;
+        top: -1rem;
+      }
+
+      .y-scale {
+        height: 140px;
       }
 
       .chart-head {
         flex-direction: column;
+        align-items: flex-start;
       }
     }
   `],
@@ -300,8 +388,8 @@ export class AnalyticsComponent {
 
     return rows.map((r, i) => ({
       ...r,
-      income: Math.round(30 + ((incomeScale * (0.6 + i * 0.08)) % 70)),
-      expense: Math.round(22 + ((expScale * (0.5 + i * 0.07)) % 58)),
+      income: Math.round(30 + ((incomeScale * (0.6 + i * 0.08)) % 65)),
+      expense: Math.round(20 + ((expScale * (0.5 + i * 0.07)) % 52)),
     }));
   });
 

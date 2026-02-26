@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -66,23 +66,49 @@ import { Transaction } from '../../models/transaction';
           } @else {
             @for (transaction of recentTransactions() | slice:0:8; track transaction.id) {
               <article class="txn-row">
-                <div class="txn-left">
-                  <span class="pill" [class.income-bg]="transaction.type === 'income'" [class.expense-bg]="transaction.type === 'expense'">
-                    <mat-icon>{{ transaction.type === 'income' ? 'south_west' : 'north_east' }}</mat-icon>
-                  </span>
-                  <div>
-                    <p class="category-line">
-                      <mat-icon class="cat-icon">{{ getCategoryIcon(transaction.category) }}</mat-icon>
-                      {{ transaction.category }}
-                    </p>
-                    <small>{{ transaction.date | date:'mediumDate' }} {{ transaction.date | date:'shortTime' }}</small>
-                    <small>{{ getPaymentLabel(transaction) }}</small>
+                <div class="txn-row-main">
+                  <div class="txn-left">
+                    <span class="pill" [class.income-bg]="transaction.type === 'income'" [class.expense-bg]="transaction.type === 'expense'">
+                      <mat-icon>{{ transaction.type === 'income' ? 'south_west' : 'north_east' }}</mat-icon>
+                    </span>
+                    <div class="txn-meta">
+                      <p class="category-line">
+                        <mat-icon class="cat-icon">{{ getCategoryIcon(transaction.category) }}</mat-icon>
+                        {{ transaction.category }}
+                      </p>
+                      <small>{{ transaction.date | date:'mediumDate' }} {{ transaction.date | date:'shortTime' }}</small>
+                    </div>
+                  </div>
+
+                  <div class="txn-right">
+                    <strong [class.income]="transaction.type === 'income'" [class.expense]="transaction.type === 'expense'">
+                      {{ transaction.type === 'income' ? '+' : '-' }}{{ transaction.amount | appCurrency }}
+                    </strong>
+                    <button
+                      class="icon-btn"
+                      type="button"
+                      (click)="toggleDetails(transaction.id)"
+                      [attr.aria-label]="isExpanded(transaction.id) ? 'Hide transaction details' : 'Show transaction details'"
+                    >
+                      <mat-icon>{{ isExpanded(transaction.id) ? 'expand_less' : 'more_horiz' }}</mat-icon>
+                    </button>
                   </div>
                 </div>
 
-                <strong [class.income]="transaction.type === 'income'" [class.expense]="transaction.type === 'expense'">
-                  {{ transaction.type === 'income' ? '+' : '-' }}{{ transaction.amount | appCurrency }}
-                </strong>
+                @if (isExpanded(transaction.id)) {
+                  <div class="txn-details">
+                    <small>
+                      <mat-icon>account_balance_wallet</mat-icon>
+                      {{ getPaymentLabel(transaction) }}
+                    </small>
+                    @if (transaction.description) {
+                      <small>
+                        <mat-icon>notes</mat-icon>
+                        {{ transaction.description }}
+                      </small>
+                    }
+                  </div>
+                }
               </article>
             }
           }
@@ -185,16 +211,19 @@ import { Transaction } from '../../models/transaction';
     }
 
     .txn-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.8rem;
       padding: 0.68rem 0;
       border-bottom: 1px solid var(--line);
     }
 
     .txn-row:last-child {
       border-bottom: 0;
+    }
+
+    .txn-row-main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.8rem;
     }
 
     .txn-left {
@@ -233,10 +262,17 @@ import { Transaction } from '../../models/transaction';
       font-weight: 700;
     }
 
+    .txn-meta {
+      min-width: 0;
+      display: grid;
+      gap: 0.14rem;
+    }
+
     .category-line {
       display: inline-flex;
       align-items: center;
       gap: 0.3rem;
+      margin: 0;
     }
 
     .cat-icon {
@@ -249,6 +285,7 @@ import { Transaction } from '../../models/transaction';
     .txn-left small {
       color: var(--text-soft);
       font-size: 0.78rem;
+      display: block;
     }
 
     .income {
@@ -277,6 +314,60 @@ import { Transaction } from '../../models/transaction';
       color: var(--primary);
     }
 
+    .txn-right {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--text-soft);
+      cursor: pointer;
+    }
+
+    .icon-btn:hover {
+      background: color-mix(in srgb, var(--line) 75%, transparent);
+      color: var(--text);
+    }
+
+    .icon-btn mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+    }
+
+    .txn-details {
+      margin-top: 0.42rem;
+      margin-left: 2.75rem;
+      display: grid;
+      gap: 0.24rem;
+    }
+
+    .txn-details small {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      color: var(--text-soft);
+      font-size: 0.76rem;
+      min-width: 0;
+    }
+
+    .txn-details mat-icon {
+      width: 14px;
+      height: 14px;
+      font-size: 14px;
+      color: var(--primary-strong);
+      flex-shrink: 0;
+    }
+
     @media (max-width: 980px) {
       .hero-card {
         grid-template-columns: 1fr;
@@ -295,6 +386,7 @@ export class DashboardComponent {
   recentTransactions = computed(() =>
     [...this.transactionService.allTransactions()].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   );
+  expandedDetails = signal<Record<string, boolean>>({});
 
   private categoryIcons: Record<string, string> = {
     Salary: 'payments',
@@ -325,5 +417,16 @@ export class DashboardComponent {
     const method = transaction.paymentMethod || 'Cash';
     if (!transaction.paymentSource) return method;
     return `${method} - ${transaction.paymentSource}`;
+  }
+
+  isExpanded(id: string): boolean {
+    return !!this.expandedDetails()[id];
+  }
+
+  toggleDetails(id: string): void {
+    this.expandedDetails.update(state => ({
+      ...state,
+      [id]: !state[id],
+    }));
   }
 }

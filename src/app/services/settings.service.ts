@@ -6,6 +6,7 @@ export interface Settings {
   currency: string;
   notification: boolean;
   autoSave: boolean;
+  transactionSounds: boolean;
   themeColor: string;
   bankAccounts: string[];
   cards: string[];
@@ -37,6 +38,7 @@ export class SettingsService {
     currency: 'USD',
     notification: true,
     autoSave: true,
+    transactionSounds: true,
     themeColor: 'Blue',
     bankAccounts: [],
     cards: [],
@@ -98,6 +100,7 @@ export class SettingsService {
   currencySymbol = computed(() => this.currencies.find(option => option.code === this.currency())?.symbol || this.currency());
   notification = computed(() => this.settingsSignal().notification);
   autoSave = computed(() => this.settingsSignal().autoSave);
+  transactionSounds = computed(() => this.settingsSignal().transactionSounds);
   themeColor = computed(() => this.settingsSignal().themeColor);
   bankAccounts = computed(() => this.settingsSignal().bankAccounts);
   cards = computed(() => this.settingsSignal().cards);
@@ -251,6 +254,7 @@ export class SettingsService {
       currency,
       notification: Boolean(value.notification ?? this.defaultSettings.notification),
       autoSave: Boolean(value.autoSave ?? this.defaultSettings.autoSave),
+      transactionSounds: Boolean(value.transactionSounds ?? this.defaultSettings.transactionSounds),
       themeColor: typeof value.themeColor === 'string' ? value.themeColor : this.defaultSettings.themeColor,
       bankAccounts: this.normalizeList(value.bankAccounts),
       cards: this.normalizeList(value.cards),

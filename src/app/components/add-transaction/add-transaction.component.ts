@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TransactionService } from '../../services/transaction.service';
 import { SettingsService } from '../../services/settings.service';
+import { SoundService } from '../../services/sound.service';
 import { AppCurrencyPipe } from '../../pipes/app-currency.pipe';
 import { LoaderComponent } from '../loader/loader.component';
 
@@ -103,7 +104,7 @@ import { LoaderComponent } from '../loader/loader.component';
 
           <label>
             <span>Date</span>
-            <input type="date" formControlName="date">
+            <input type="date" formControlName="date" [max]="maxDate">
           </label>
 
           <label>
@@ -144,8 +145,11 @@ import { LoaderComponent } from '../loader/loader.component';
             </label>
           }
 
-          @if (showSuccess()) {
-            <p class="saved">Transaction saved successfully.</p>
+          @if (alertState(); as alert) {
+            <p class="txn-alert" [class.success]="alert.type === 'success'" [class.error]="alert.type === 'error'" role="alert" aria-live="assertive">
+              <mat-icon>{{ alert.type === 'success' ? 'check_circle' : 'error' }}</mat-icon>
+              {{ alert.message }}
+            </p>
           }
 
           <button class="btn-solid save" type="submit" [disabled]="transactionForm.invalid || isSaving()">
@@ -494,11 +498,36 @@ import { LoaderComponent } from '../loader/loader.component';
       font-weight: 700;
     }
 
-    .saved {
+    .txn-alert {
       margin: 0;
-      color: var(--success);
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      padding: 0.6rem 0.72rem;
+      font-size: 0.82rem;
       font-weight: 700;
-      text-align: center;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .txn-alert mat-icon {
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .txn-alert.success {
+      border-color: color-mix(in srgb, var(--success) 35%, var(--line));
+      background: color-mix(in srgb, var(--success) 9%, var(--surface));
+      color: color-mix(in srgb, var(--success) 88%, var(--text));
+    }
+
+    .txn-alert.error {
+      border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
+      background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+      color: color-mix(in srgb, var(--danger) 88%, var(--text));
     }
 
     .payment-source {
@@ -531,17 +560,20 @@ import { LoaderComponent } from '../loader/loader.component';
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AddTransactionComponent implements OnInit {
+export class AddTransactionComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private transactionService = inject(TransactionService);
   private router = inject(Router);
+  private soundService = inject(SoundService);
   settingsService = inject(SettingsService);
 
   transactionForm!: FormGroup;
-  showSuccess = signal(false);
+  maxDate = '';
   isSaving = signal(false);
+  alertState = signal<{ type: 'success' | 'error'; message: string } | null>(null);
   categorySearch = signal('');
   paymentMethods: Array<'Cash' | 'Card' | 'Bank'> = ['Cash', 'Card', 'Bank'];
+  private alertTimeoutId: ReturnType<typeof setTimeout> | null = null;
   cardOptions = computed(() => this.settingsService.cards());
   bankAccountOptions = computed(() => this.settingsService.bankAccounts());
 
@@ -549,7 +581,8 @@ export class AddTransactionComponent implements OnInit {
     { name: 'Salary', icon: 'payments', kind: 'income' },
     { name: 'Freelance', icon: 'work', kind: 'income' },
     { name: 'Investment', icon: 'trending_up', kind: 'income' },
-    { name: 'Gifts', icon: 'card_giftcard', kind: 'both' },
+    { name: 'Gift Received', icon: 'redeem', kind: 'income' },
+    { name: 'Gifts', icon: 'card_giftcard', kind: 'expense' },
     { name: 'Food', icon: 'restaurant', kind: 'expense' },
     { name: 'Groceries', icon: 'local_grocery_store', kind: 'expense' },
     { name: 'Transport', icon: 'directions_bus', kind: 'expense' },
@@ -570,7 +603,7 @@ export class AddTransactionComponent implements OnInit {
     const query = this.categorySearch().trim().toLowerCase();
     const type = this.transactionForm?.get('type')?.value as 'income' | 'expense' | undefined;
     return this.categories()
-      .filter(cat => !type || cat.kind === 'both' || cat.kind === type)
+      .filter(cat => !type || cat.kind === type)
       .filter(cat => !query || cat.name.toLowerCase().includes(query));
   });
 
@@ -631,22 +664,29 @@ export class AddTransactionComponent implements OnInit {
   ngOnInit(): void {
     const now = new Date();
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    this.maxDate = today;
 
     this.transactionForm = this.fb.group({
       type: ['expense', Validators.required],
       amount: ['', [Validators.required, Validators.min(0.01)]],
       category: ['', Validators.required],
-      date: [today, Validators.required],
+      date: [today, [Validators.required, this.noFutureDateValidator]],
       description: [''],
       paymentMethod: ['Cash', Validators.required],
       paymentSource: [''],
     });
 
+    this.transactionForm.get('type')?.valueChanges.subscribe(() => this.syncCategoryForType());
     this.syncPaymentSourceRequirement();
+  }
+
+  ngOnDestroy(): void {
+    this.clearAlertTimeout();
   }
 
   selectType(type: 'income' | 'expense'): void {
     this.transactionForm.patchValue({ type });
+    this.syncCategoryForType();
     this.categorySearch.set('');
   }
 
@@ -722,8 +762,13 @@ export class AddTransactionComponent implements OnInit {
   async onSubmit(): Promise<void> {
     if (this.transactionForm.invalid) return;
 
+    this.clearAlert();
     this.isSaving.set(true);
     const value = this.transactionForm.value;
+    if (this.isFutureDate(String(value.date || ''))) {
+      this.setAlert('error', 'Future date is not allowed. Please select today or a past date.');
+      return;
+    }
 
     try {
       const success = await this.transactionService.addTransaction({
@@ -736,12 +781,80 @@ export class AddTransactionComponent implements OnInit {
         paymentSource: value.paymentSource || ''
       });
 
-      if (!success) return;
+      if (!success) {
+        this.setAlert('error', 'Unable to add this transaction right now. Please try again.');
+        return;
+      }
 
-      this.showSuccess.set(true);
-      setTimeout(() => this.router.navigate(['/dashboard']), 450);
+      this.playTransactionSound(value.type as 'income' | 'expense');
+      this.setAlert('success', this.buildSuccessMessage(value.paymentMethod, value.paymentSource));
+      setTimeout(() => this.router.navigate(['/dashboard']), 700);
     } finally {
       this.isSaving.set(false);
+    }
+  }
+
+  private buildSuccessMessage(paymentMethod: 'Cash' | 'Card' | 'Bank', paymentSource?: string): string {
+    const source = String(paymentSource || '').trim();
+    if (!source || paymentMethod === 'Cash') {
+      return 'Transaction added to your accounts.';
+    }
+    return `Transaction added to your ${paymentMethod.toLowerCase()} account: ${source}.`;
+  }
+
+  private playTransactionSound(type: 'income' | 'expense'): void {
+    if (!this.settingsService.transactionSounds()) {
+      return;
+    }
+
+    if (type === 'income') {
+      this.soundService.playIncomeCoin();
+      return;
+    }
+
+    this.soundService.playExpenseCoin();
+  }
+
+  private setAlert(type: 'success' | 'error', message: string): void {
+    this.alertState.set({ type, message });
+    this.clearAlertTimeout();
+    this.alertTimeoutId = setTimeout(() => this.alertState.set(null), 4500);
+  }
+
+  private clearAlert(): void {
+    this.alertState.set(null);
+    this.clearAlertTimeout();
+  }
+
+  private clearAlertTimeout(): void {
+    if (!this.alertTimeoutId) return;
+    clearTimeout(this.alertTimeoutId);
+    this.alertTimeoutId = null;
+  }
+
+  private noFutureDateValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = String(control.value || '');
+    return this.isFutureDate(value) ? { futureDate: true } : null;
+  };
+
+  private isFutureDate(value: string): boolean {
+    if (!value) return false;
+    const selected = new Date(`${value}T00:00:00`);
+    const today = new Date(this.maxDate ? `${this.maxDate}T00:00:00` : new Date().toISOString().slice(0, 10) + 'T00:00:00');
+    return selected.getTime() > today.getTime();
+  }
+
+  private syncCategoryForType(): void {
+    const type = this.transactionForm.get('type')?.value as 'income' | 'expense' | undefined;
+    const selectedCategory = String(this.transactionForm.get('category')?.value || '');
+    if (!type || !selectedCategory) return;
+
+    const validForType = this.categories().some(
+      cat => cat.name === selectedCategory && cat.kind === type
+    );
+
+    if (!validForType) {
+      this.transactionForm.patchValue({ category: '' });
     }
   }
 }
