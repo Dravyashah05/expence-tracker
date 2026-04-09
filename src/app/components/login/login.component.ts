@@ -10,91 +10,189 @@ import { LoaderComponent } from '../loader/loader.component';
   selector: 'app-login',
   imports: [CommonModule, ReactiveFormsModule, MatIconModule, LoaderComponent],
   template: `
-    <section class="page-shell login-shell">
-      <div class="login-grid">
-        <aside class="pitch">
-          <p class="eyebrow">Rupee</p>
-          <h1>Modern money habits start with clear daily visibility.</h1>
-          <p class="text-muted">Review income, spot spending patterns, and keep your cashflow under control in one clean workspace.</p>
+    <div class="login-page">
+      <div class="login-container">
 
-          <div class="feature-list">
-            <article>
-              <mat-icon>bolt</mat-icon>
-              <span>Fast entry flow</span>
-            </article>
-            <article>
-              <mat-icon>insights</mat-icon>
-              <span>Simple analytics</span>
-            </article>
-            <article>
-              <mat-icon>verified_user</mat-icon>
-              <span>Private local storage</span>
-            </article>
+        <!-- Left Pitch Panel -->
+        <aside class="pitch-panel">
+          <div class="pitch-top">
+            <div class="brand-badge">
+              <img src="/rupee-logo.png" alt="Rupee Logo" class="logo">
+              Rupee
+            </div>
+            <h1>Smart money tracking for modern life.</h1>
+            <p>Get clear visibility into where your money goes. Track expenses, monitor income, and build better financial habits.</p>
+          </div>
+
+          <div class="features">
+            <div class="feature-item">
+              <div class="feature-icon"><mat-icon>bolt</mat-icon></div>
+              <div>
+                <strong>Lightning Fast Entry</strong>
+                <p>Add transactions in seconds with smart categories and quick amounts.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><mat-icon>insights</mat-icon></div>
+              <div>
+                <strong>Powerful Analytics</strong>
+                <p>Visualize spending patterns and track your savings rate over time.</p>
+              </div>
+            </div>
+            <div class="feature-item">
+              <div class="feature-icon"><mat-icon>lock</mat-icon></div>
+              <div>
+                <strong>Private & Secure</strong>
+                <p>All data stored locally. Your finances stay on your device.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pitch-footer">
+            <div class="stat-row">
+              <div class="stat"><strong>100%</strong><span>Private</span></div>
+              <div class="stat-divider"></div>
+              <div class="stat"><strong>Free</strong><span>Always</span></div>
+              <div class="stat-divider"></div>
+              <div class="stat"><strong>Local</strong><span>Storage</span></div>
+            </div>
           </div>
         </aside>
 
-        <section class="auth-card surface-card">
-          <div class="switch">
-            <button type="button" [class.active]="!isRegisterMode()" (click)="setMode(false)">Sign In</button>
-            <button type="button" [class.active]="isRegisterMode()" (click)="setMode(true)">Register</button>
+        <!-- Auth Card -->
+        <section class="auth-panel">
+          <div class="auth-card">
+            <!-- Mode Switcher -->
+            <div class="mode-switcher">
+              <button
+                type="button"
+                [class.active]="!isRegisterMode()"
+                (click)="setMode(false)">
+                <mat-icon>login</mat-icon>
+                Sign In
+              </button>
+              <button
+                type="button"
+                [class.active]="isRegisterMode()"
+                (click)="setMode(true)">
+                <mat-icon>person_add</mat-icon>
+                Register
+              </button>
+            </div>
+
+            <!-- Sign In Form -->
+            @if (!isRegisterMode()) {
+              <div class="form-header">
+                <h2>Welcome back</h2>
+                <p>Sign in to your account to continue.</p>
+              </div>
+              <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form">
+                <div class="input-group">
+                  <mat-icon class="input-icon">mail</mat-icon>
+                  <input
+                    type="email"
+                    formControlName="email"
+                    placeholder="Email address"
+                    autocomplete="email"
+                  >
+                </div>
+                <div class="input-group">
+                  <mat-icon class="input-icon">lock</mat-icon>
+                  <input
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="Password"
+                    autocomplete="current-password"
+                  >
+                  <button type="button" class="vis-toggle" (click)="togglePassword()">
+                    <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                </div>
+
+                @if (errorMessage()) {
+                  <div class="error-banner">
+                    <mat-icon>error</mat-icon>
+                    {{ errorMessage() }}
+                  </div>
+                }
+
+                <button class="submit-btn" type="submit" [disabled]="loginForm.invalid || isLoading()">
+                  @if (isLoading()) {
+                    <app-loader size="sm"></app-loader>
+                    Signing in...
+                  } @else {
+                    Sign In
+                    <mat-icon>arrow_forward</mat-icon>
+                  }
+                </button>
+              </form>
+            }
+
+            <!-- Register Form -->
+            @if (isRegisterMode()) {
+              <div class="form-header">
+                <h2>Create your account</h2>
+                <p>Get started for free — no credit card needed.</p>
+              </div>
+              <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form">
+                <div class="input-group">
+                  <mat-icon class="input-icon">person</mat-icon>
+                  <input
+                    type="text"
+                    formControlName="name"
+                    placeholder="Full name"
+                    autocomplete="name"
+                  >
+                </div>
+                <div class="input-group">
+                  <mat-icon class="input-icon">mail</mat-icon>
+                  <input
+                    type="email"
+                    formControlName="email"
+                    placeholder="Email address"
+                    autocomplete="email"
+                  >
+                </div>
+                <div class="input-group">
+                  <mat-icon class="input-icon">lock</mat-icon>
+                  <input
+                    [type]="showPassword() ? 'text' : 'password'"
+                    formControlName="password"
+                    placeholder="Password (min. 6 characters)"
+                    autocomplete="new-password"
+                  >
+                  <button type="button" class="vis-toggle" (click)="togglePassword()">
+                    <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                  </button>
+                </div>
+
+                @if (errorMessage()) {
+                  <div class="error-banner">
+                    <mat-icon>error</mat-icon>
+                    {{ errorMessage() }}
+                  </div>
+                }
+
+                <button class="submit-btn" type="submit" [disabled]="registerForm.invalid || isLoading()">
+                  @if (isLoading()) {
+                    <app-loader size="sm"></app-loader>
+                    Creating account...
+                  } @else {
+                    Create Account
+                    <mat-icon>arrow_forward</mat-icon>
+                  }
+                </button>
+              </form>
+            }
+
+            <div class="demo-cta">
+              <mat-icon>info</mat-icon>
+              <span>Demo account: <strong>demo&#64;example.com</strong> / <strong>demo123</strong></span>
+            </div>
           </div>
-
-          @if (!isRegisterMode()) {
-            <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="form-grid">
-              <label>
-                <span>Email</span>
-                <input type="email" formControlName="email" placeholder="you@example.com">
-              </label>
-              <label>
-                <span>Password</span>
-                <input type="password" formControlName="password" placeholder="Minimum 6 characters">
-              </label>
-              @if (errorMessage()) {
-                <p class="error">{{ errorMessage() }}</p>
-              }
-              <button class="btn-solid" type="submit" [disabled]="loginForm.invalid || isLoading()">
-                @if (isLoading()) {
-                  <app-loader size="sm"></app-loader>
-                  Signing in...
-                } @else {
-                  Continue
-                }
-              </button>
-            </form>
-          }
-
-          @if (isRegisterMode()) {
-            <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="form-grid">
-              <label>
-                <span>Full Name</span>
-                <input type="text" formControlName="name" placeholder="Your name">
-              </label>
-              <label>
-                <span>Email</span>
-                <input type="email" formControlName="email" placeholder="you@example.com">
-              </label>
-              <label>
-                <span>Password</span>
-                <input type="password" formControlName="password" placeholder="Minimum 6 characters">
-              </label>
-              @if (errorMessage()) {
-                <p class="error">{{ errorMessage() }}</p>
-              }
-              <button class="btn-solid" type="submit" [disabled]="registerForm.invalid || isLoading()">
-                @if (isLoading()) {
-                  <app-loader size="sm"></app-loader>
-                  Creating account...
-                } @else {
-                  Create Account
-                }
-              </button>
-            </form>
-          }
-
-          <p class="demo">Demo: demo@example.com / demo123</p>
         </section>
       </div>
-    </section>
+    </div>
   `,
   styles: `
     :host {
@@ -102,172 +200,381 @@ import { LoaderComponent } from '../loader/loader.component';
       min-height: 100vh;
     }
 
-    .login-shell {
-      min-height: calc(100vh - 2.3rem);
-      display: grid;
-      align-content: center;
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
     }
 
-    .login-grid {
+    .login-container {
+      width: 100%;
+      max-width: 1100px;
       display: grid;
-      grid-template-columns: 1.08fr 0.92fr;
-      gap: 1rem;
-      padding: 1rem;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 1.5rem;
+      min-height: 620px;
     }
 
-    .pitch {
-      border-radius: var(--radius-md);
-      padding: 1.35rem;
+    /* ---- Pitch Panel ---- */
+    .pitch-panel {
       background:
-        radial-gradient(380px 180px at 90% 0%, rgba(245, 158, 11, 0.24), transparent),
-        linear-gradient(145deg, color-mix(in srgb, var(--primary) 20%, var(--surface)) 0%, var(--surface-soft) 100%);
-      border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--line));
-      display: grid;
-      align-content: start;
-      gap: 0.72rem;
+        radial-gradient(ellipse 380px 200px at 100% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent),
+        radial-gradient(ellipse 300px 180px at 0% 100%, color-mix(in srgb, var(--primary) 15%, transparent), transparent),
+        linear-gradient(145deg,
+          color-mix(in srgb, var(--primary) 18%, var(--surface)) 0%,
+          var(--surface) 100%
+        );
+      border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line));
+      border-radius: var(--radius-xl);
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
     }
 
-    .eyebrow {
-      width: fit-content;
-      font-size: 0.74rem;
-      font-weight: 700;
-      border-radius: 999px;
-      padding: 0.35rem 0.7rem;
-      background: color-mix(in srgb, var(--primary) 20%, transparent);
-      color: var(--primary-strong);
-    }
-
-    h1 {
-      font-size: clamp(1.55rem, 3.5vw, 2.35rem);
-      line-height: 1.1;
-      max-width: 16ch;
-    }
-
-    .feature-list {
-      margin-top: 0.6rem;
-      display: grid;
-      gap: 0.55rem;
-    }
-
-    .feature-list article {
+    .brand-badge {
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
-      width: fit-content;
-      padding: 0.44rem 0.7rem;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: color-mix(in srgb, var(--primary) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--primary) 25%, var(--line));
       border-radius: 999px;
-      border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
-      background: color-mix(in srgb, var(--surface) 80%, transparent);
+      font-size: 0.9rem;
+      font-weight: 800;
+      color: var(--primary-strong);
+      width: fit-content;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .brand-badge mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .brand-badge .logo {
+      height: 1.1rem;
+      width: auto;
+    }
+
+    .pitch-top h1 {
+      font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      max-width: 20ch;
+      margin: 1rem 0 0.8rem;
+    }
+
+    .pitch-top p {
+      color: var(--text-soft);
+      font-size: 1.05rem;
+      max-width: 38ch;
+      line-height: 1.65;
+    }
+
+    .features {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--line));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-strong);
+      flex-shrink: 0;
+    }
+
+    .feature-icon mat-icon {
+      font-size: 1.3rem;
+      width: 1.3rem;
+      height: 1.3rem;
+    }
+
+    .feature-item strong {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.2rem;
+    }
+
+    .feature-item p {
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .pitch-footer {
+      margin-top: auto;
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 1.2rem 1.5rem;
+      background: color-mix(in srgb, var(--surface) 70%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+    }
+
+    .stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .stat strong {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--primary-strong);
+      letter-spacing: -0.03em;
+    }
+
+    .stat span {
+      font-size: 0.75rem;
+      color: var(--text-soft);
       font-weight: 600;
     }
 
-    .feature-list mat-icon {
-      width: 17px;
-      height: 17px;
-      font-size: 17px;
-      color: var(--primary-strong);
+    .stat-divider {
+      width: 1px;
+      height: 36px;
+      background: var(--line);
+    }
+
+    /* ---- Auth Panel ---- */
+    .auth-panel {
+      display: flex;
+      align-items: center;
     }
 
     .auth-card {
-      padding: 1rem;
-      display: grid;
-      gap: 0.75rem;
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
     }
 
-    .switch {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.35rem;
+    .mode-switcher {
+      display: flex;
+      gap: 0.4rem;
       background: var(--surface-soft);
       border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0.23rem;
+      border-radius: 14px;
+      padding: 0.3rem;
     }
 
-    .switch button {
-      border: 0;
-      border-radius: 999px;
+    .mode-switcher button {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.6rem;
+      border: none;
+      border-radius: 10px;
       background: transparent;
       color: var(--text-soft);
       font: inherit;
       font-weight: 700;
-      padding: 0.5rem;
+      font-size: 0.9rem;
       cursor: pointer;
+      transition: all 0.2s;
     }
 
-    .switch button.active {
+    .mode-switcher button mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .mode-switcher button.active {
       background: var(--surface);
-      color: var(--text);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      color: var(--primary-strong);
+      box-shadow: var(--shadow-sm);
     }
 
-    .form-grid {
-      display: grid;
-      gap: 0.62rem;
+    .form-header h2 {
+      font-size: 1.7rem;
+      font-weight: 800;
     }
 
-    label {
-      display: grid;
-      gap: 0.32rem;
-    }
-
-    label span {
+    .form-header p {
       color: var(--text-soft);
-      font-weight: 700;
-      font-size: 0.81rem;
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
     }
 
-    input {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-soft);
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+      pointer-events: none;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 3rem;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface-soft);
       color: var(--text);
       font: inherit;
-      padding: 0.7rem 0.82rem;
+      font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    input:focus {
+    .input-group input:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 12%, transparent);
+      background: var(--surface);
     }
 
-    .btn-solid {
-      width: 100%;
-      margin-top: 0.18rem;
-      display: inline-flex;
+    .vis-toggle {
+      position: absolute;
+      right: 0.8rem;
+      background: none;
+      border: none;
+      color: var(--text-soft);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+    }
+
+    .vis-toggle mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .submit-btn {
+      display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.45rem;
+      gap: 0.5rem;
+      width: 100%;
+      padding: 0.95rem;
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 0.4rem;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 18px color-mix(in srgb, var(--primary) 30%, transparent);
     }
 
-    .error {
-      margin: 0;
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 38%, transparent);
+      filter: brightness(1.05);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .submit-btn mat-icon {
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    .error-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1rem;
+      background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--danger) 30%, var(--line));
+      border-radius: 10px;
       color: var(--danger);
-      font-size: 0.84rem;
+      font-size: 0.88rem;
       font-weight: 600;
     }
 
-    .demo {
-      text-align: center;
-      font-size: 0.79rem;
-      color: var(--text-soft);
-      border-top: 1px solid var(--line);
-      padding-top: 0.65rem;
+    .error-banner mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
     }
 
-    @media (max-width: 980px) {
-      .login-shell {
-        min-height: calc(100vh - 1.2rem);
-      }
+    .demo-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: auto;
+      color: var(--text-soft);
+      font-size: 0.82rem;
+      border-top: 1px solid var(--line);
+      padding-top: 1.2rem;
+    }
 
-      .login-grid {
+    .demo-cta mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+    }
+
+    .demo-cta strong {
+      color: var(--primary-strong);
+    }
+
+    @media (max-width: 960px) {
+      .login-container {
         grid-template-columns: 1fr;
-        padding: 0.8rem;
+        max-width: 500px;
       }
 
-      h1 {
-        max-width: 100%;
+      .pitch-panel {
+        display: none;
       }
     }
   `,
@@ -281,6 +588,7 @@ export class LoginComponent {
   isRegisterMode = signal(false);
   errorMessage = signal('');
   isLoading = signal(false);
+  showPassword = signal(false);
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
@@ -296,20 +604,23 @@ export class LoginComponent {
   setMode(isRegister: boolean): void {
     this.isRegisterMode.set(isRegister);
     this.errorMessage.set('');
+    this.showPassword.set(false);
+  }
+
+  togglePassword(): void {
+    this.showPassword.update(v => !v);
   }
 
   async onLogin(): Promise<void> {
     if (this.loginForm.invalid) return;
-
     this.isLoading.set(true);
     const { email, password } = this.loginForm.value;
-
     try {
       const success = await this.authService.login(email || '', password || '');
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.errorMessage.set('Invalid email or password');
+        this.errorMessage.set('Invalid email or password. Please try again.');
       }
     } finally {
       this.isLoading.set(false);
@@ -318,16 +629,14 @@ export class LoginComponent {
 
   async onRegister(): Promise<void> {
     if (this.registerForm.invalid) return;
-
     this.isLoading.set(true);
     const { email, password, name } = this.registerForm.value;
-
     try {
       const success = await this.authService.register(email || '', password || '', name || '');
       if (success) {
         this.router.navigate(['/dashboard']);
       } else {
-        this.errorMessage.set('Email already exists');
+        this.errorMessage.set('An account with this email already exists.');
       }
     } finally {
       this.isLoading.set(false);

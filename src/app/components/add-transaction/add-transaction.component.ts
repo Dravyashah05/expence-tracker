@@ -1,562 +1,339 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, signal, inject, computed } from '@angular/core';
+import {
+  Component, OnInit, OnDestroy, ChangeDetectionStrategy,
+  signal, inject, ChangeDetectorRef
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  AbstractControl,
+  ValidationErrors,
+  FormsModule
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TransactionService } from '../../services/transaction.service';
+import { Transaction } from '../../models/transaction';
 import { SettingsService } from '../../services/settings.service';
 import { SoundService } from '../../services/sound.service';
 import { AppCurrencyPipe } from '../../pipes/app-currency.pipe';
 import { LoaderComponent } from '../loader/loader.component';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-add-transaction',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatIconModule, AppCurrencyPipe, LoaderComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, MatIconModule, AppCurrencyPipe, LoaderComponent],
   template: `
     <section class="page-shell">
-      <form class="page-content form-wrap" [formGroup]="transactionForm" (ngSubmit)="onSubmit()">
+      <form class="page-content" [formGroup]="transactionForm" (ngSubmit)="onSubmit()">
         <header class="page-header">
           <div>
             <h1 class="page-title">Add Transaction</h1>
-            <p class="page-subtitle">Capture income and expenses in a clean single-step form.</p>
+            <p class="page-subtitle">Record income or expenses quickly.</p>
           </div>
-          <button class="btn-outline" type="button" (click)="goBack()">Back</button>
+          <button class="btn-outline back-btn" type="button" (click)="goBack()">
+            <mat-icon>arrow_back</mat-icon> Back
+          </button>
         </header>
 
-        <section class="surface-card form-card">
-          <div class="type-tabs">
-            <button type="button" [class.active]="transactionForm.get('type')?.value === 'income'" (click)="selectType('income')">Income</button>
-            <button type="button" [class.active]="transactionForm.get('type')?.value === 'expense'" (click)="selectType('expense')">Expense</button>
-          </div>
+        <div class="form-grid">
+          <!-- ═══════════ LEFT COLUMN ═══════════ -->
+          <div class="left-col">
 
-          <label class="amount-box">
-            <span>Amount</span>
-            <div class="amount-row">
-              <i>{{ settingsService.currencySymbol() }}</i>
-              <input type="number" step="0.01" formControlName="amount" placeholder="0.00">
+            <!-- Type Switcher -->
+            <div class="type-switcher">
+              <button type="button" class="type-btn income-btn"
+                [class.active]="currentType === 'income'"
+                (click)="selectType('income')">
+                <mat-icon>trending_up</mat-icon> Income
+              </button>
+              <button type="button" class="type-btn expense-btn"
+                [class.active]="currentType === 'expense'"
+                (click)="selectType('expense')">
+                <mat-icon>trending_down</mat-icon> Expense
+              </button>
             </div>
-          </label>
 
-          <div class="quick-amounts">
-            <p>Quick Amounts</p>
-            <div class="amount-chips">
-              @for (amount of quickAmounts(); track amount) {
-                <button type="button" class="chip" [class.active]="isQuickAmountSelected(amount)" (click)="setQuickAmount(amount)">
-                  {{ amount | appCurrency }}
-                </button>
+            <!-- Amount -->
+            <div class="glass-card amount-card">
+              <p class="field-label">Total Amount</p>
+              <div class="amount-row">
+                <span class="currency-badge">{{ settingsService.currencySymbol() }}</span>
+                <input class="amount-input" type="number" step="0.01" min="0.01"
+                  formControlName="amount" placeholder="0.00">
+              </div>
+              <div class="quick-amounts">
+                @for (amt of quickAmounts; track amt) {
+                  <button type="button" class="quick-chip"
+                    [class.active]="transactionForm.get('amount')?.value == amt"
+                    (click)="setQuickAmount(amt)">
+                    {{ amt | appCurrency }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Date & Description -->
+            <div class="glass-card fields-card">
+              <div class="field-group">
+                <p class="field-label"><mat-icon class="field-icon">calendar_today</mat-icon> Date</p>
+                <input class="styled-input" type="date" formControlName="date" [max]="maxDate">
+              </div>
+              <div class="field-group">
+                <p class="field-label">
+                  <mat-icon class="field-icon">notes</mat-icon>
+                  Description <span class="optional">(Optional)</span>
+                </p>
+                <input class="styled-input" type="text" formControlName="description" placeholder="What was this for?">
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="glass-card fields-card">
+              <p class="field-label"><mat-icon class="field-icon">account_balance_wallet</mat-icon> Payment Method</p>
+              <div class="method-pills">
+                @for (method of paymentMethods; track method) {
+                  <button type="button" class="method-pill"
+                    [class.active]="transactionForm.get('paymentMethod')?.value === method"
+                    (click)="selectPaymentMethod(method)">
+                    <mat-icon>{{ getMethodIcon(method) }}</mat-icon> {{ method }}
+                  </button>
+                }
+              </div>
+
+              @if (showPaymentSource) {
+                <div class="field-group" style="margin-top:1rem;">
+                  <p class="field-label">{{ paymentSourceLabel }}</p>
+                  @if (paymentSourceOptions.length > 0) {
+                    <select class="styled-input" formControlName="paymentSource">
+                      <option value="">Select {{ paymentSourceLabel.toLowerCase() }}</option>
+                      @for (opt of paymentSourceOptions; track opt) {
+                        <option [value]="opt">{{ opt }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <input class="styled-input" type="text" formControlName="paymentSource"
+                      [placeholder]="'Enter ' + paymentSourceLabel.toLowerCase()">
+                    <p class="hint-text">
+                      <mat-icon style="font-size:14px;width:14px;height:14px;">info</mat-icon>
+                      No saved {{ paymentSourceLabel.toLowerCase() }}s — add them in Settings.
+                    </p>
+                  }
+                </div>
               }
             </div>
+
+            <!-- Status alert -->
+            @if (alertState(); as alert) {
+              <div class="txn-alert" [class.success]="alert.type === 'success'" [class.error]="alert.type === 'error'">
+                <mat-icon>{{ alert.type === 'success' ? 'check_circle' : 'error' }}</mat-icon>
+                {{ alert.message }}
+              </div>
+            }
+
+            <!-- Submit -->
+            <button class="save-btn"
+              [class.income-save]="currentType === 'income'"
+              [class.expense-save]="currentType === 'expense'"
+              type="submit"
+              [disabled]="!isFormReady()">
+              @if (isSaving()) {
+                <app-loader size="sm"></app-loader> Saving...
+              } @else {
+                <mat-icon>add_circle</mat-icon>
+                Save Transaction
+              }
+            </button>
           </div>
 
-          <div class="category-field">
-            <span>Category</span>
-            <div class="category-tools">
-              <div class="merge-row">
-                <input
-                  type="text"
-                  [value]="categorySearch()"
-                  (input)="onCategorySearch($event)"
-                  placeholder="Search category or type new..."
-                >
-                <button type="button" class="btn-outline add-custom" (click)="addCustomCategory()" [disabled]="!canAddCustomCategory()">
-                  Add
-                </button>
+          <!-- ═══════════ RIGHT COLUMN — Category ═══════════ -->
+          <div class="right-col">
+            <div class="glass-card cat-card">
+              <div class="cat-card-header">
+                <p class="field-label"> 
+                  <mat-icon class="field-icon">category</mat-icon>
+                  Category
+                </p>
+                @if (selectedCategory) {
+                  <span class="selected-badge">{{ selectedCategory }}</span>
+                }
               </div>
-              <small class="hint">Type to search. If not found, click Add to create a custom category.</small>
-            </div>
 
-            @if (recentCategories().length > 0) {
-              <div class="recent-cats">
-                <p>Recent</p>
-                <div>
-                  @for (cat of recentCategories(); track cat.name) {
-                    <button type="button" (click)="selectCategory(cat.name)">
-                      <mat-icon>{{ cat.icon }}</mat-icon>
-                      {{ cat.name }}
+              <!-- Search -->
+              <div class="cat-search-row">
+                <div class="cat-search-wrap">
+                  <mat-icon class="search-icon">search</mat-icon>
+                  <input type="text" class="cat-search-input"
+                    [(ngModel)]="categorySearch"
+                    [ngModelOptions]="{standalone: true}"
+                    (ngModelChange)="onSearch()"
+                    placeholder="Search categories...">
+                  @if (categorySearch) {
+                    <button class="clear-search" type="button" (click)="categorySearch=''; onSearch()">
+                      <mat-icon>close</mat-icon>
                     </button>
                   }
                 </div>
-              </div>
-            }
-
-            <div class="category-list">
-              @if (filteredCategories().length === 0) {
-                <p class="empty-list">No category found.</p>
-              } @else {
-                @for (cat of filteredCategories(); track cat.name) {
-                  <button
-                    type="button"
-                    class="cat-option"
-                    [class.active]="transactionForm.get('category')?.value === cat.name"
-                    (click)="selectCategory(cat.name)"
-                  >
-                    <span class="cat-left">
-                      <mat-icon>{{ cat.icon }}</mat-icon>
-                      <span>{{ cat.name }}</span>
-                    </span>
-                    <mat-icon class="check">check_circle</mat-icon>
-                  </button>
-                }
-              }
-            </div>
-          </div>
-
-          <label>
-            <span>Date</span>
-            <input type="date" formControlName="date" [max]="maxDate">
-          </label>
-
-          <label>
-            <span>Description</span>
-            <input type="text" formControlName="description" placeholder="Optional note">
-          </label>
-
-          <div class="payment-method">
-            <span>Payment Method</span>
-            <div class="method-tabs">
-              @for (method of paymentMethods; track method) {
-                <button
-                  type="button"
-                  [class.active]="transactionForm.get('paymentMethod')?.value === method"
-                  (click)="selectPaymentMethod(method)"
-                >
-                  {{ method }}
+                <button type="button" class="add-cat-btn"
+                  (click)="addCustomCategory()"
+                  [disabled]="!canAddCustom"
+                  title="Add as custom category">
+                  <mat-icon>add</mat-icon>
                 </button>
-              }
-            </div>
-            <p class="method-preview">{{ selectedPaymentPreview() }}</p>
-          </div>
+              </div>
 
-          @if (isPaymentSourceRequired()) {
-            <label class="payment-source">
-              <span>{{ paymentSourceLabel() }}</span>
-              @if (paymentSourceOptions().length > 0) {
-                <select formControlName="paymentSource">
-                  <option value="">Select {{ paymentSourceLabel().toLowerCase() }}</option>
-                  @for (item of paymentSourceOptions(); track item) {
-                    <option [value]="item">{{ item }}</option>
+              <!-- Recent chips -->
+              @if (recentCats.length > 0 && !categorySearch) {
+                <div class="recent-section">
+                  <span class="section-label">Recently used</span>
+                  <div class="recent-chips">
+                    @for (cat of recentCats; track cat.name) {
+                      <button type="button" class="recent-chip"
+                        [class.active]="selectedCategory === cat.name"
+                        (click)="selectCategory(cat.name)">
+                        <mat-icon>{{ cat.icon }}</mat-icon> {{ cat.name }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Grid -->
+              <div class="cat-grid">
+                @if (filteredCats.length === 0) {
+                  <div class="cat-empty">
+                    <mat-icon>search_off</mat-icon>
+                    <p>No match — click <strong>+</strong> to add "{{ categorySearch }}"</p>
+                  </div>
+                } @else {
+                  @for (cat of filteredCats; track cat.name) {
+                    <button type="button" class="cat-tile"
+                      [class.active]="selectedCategory === cat.name"
+                      (click)="selectCategory(cat.name)">
+                      <div class="cat-icon-wrap"><mat-icon>{{ cat.icon }}</mat-icon></div>
+                      <span class="cat-name">{{ cat.name }}</span>
+                      @if (selectedCategory === cat.name) {
+                        <div class="cat-check"><mat-icon>check</mat-icon></div>
+                      }
+                    </button>
                   }
-                </select>
-              } @else {
-                <input type="text" formControlName="paymentSource" [placeholder]="'Enter ' + paymentSourceLabel().toLowerCase()">
-                <p class="empty-source">No saved {{ paymentSourceLabel().toLowerCase() }} found in Settings. You can enter it manually.</p>
-              }
-            </label>
-          }
-
-          @if (alertState(); as alert) {
-            <p class="txn-alert" [class.success]="alert.type === 'success'" [class.error]="alert.type === 'error'" role="alert" aria-live="assertive">
-              <mat-icon>{{ alert.type === 'success' ? 'check_circle' : 'error' }}</mat-icon>
-              {{ alert.message }}
-            </p>
-          }
-
-          <button class="btn-solid save" type="submit" [disabled]="transactionForm.invalid || isSaving()">
-            @if (isSaving()) {
-              <app-loader size="sm"></app-loader>
-              Saving...
-            } @else {
-              Save Transaction
-            }
-          </button>
-        </section>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
       </form>
     </section>
   `,
   styles: [`
-    :host {
-      display: block;
+    :host { display: block; animation: fadeIn .35s ease-out; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+    .page-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.75rem; flex-wrap:wrap; gap:1rem; }
+    .back-btn { display:inline-flex; align-items:center; gap:.4rem; }
+    .back-btn mat-icon { font-size:1.2rem; width:1.2rem; height:1.2rem; }
+
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:start; }
+    .left-col, .right-col { display:flex; flex-direction:column; gap:1.2rem; }
+
+    .glass-card {
+      background: color-mix(in srgb, var(--surface) 78%, transparent);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid color-mix(in srgb, var(--line) 60%, #fff 20%);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem;
+      box-shadow: 0 6px 28px rgba(0,0,0,.04);
     }
 
-    .form-card {
-      padding: 0.95rem;
-      display: grid;
-      gap: 0.72rem;
-    }
+    /* Type Switcher */
+    .type-switcher { display:grid; grid-template-columns:1fr 1fr; gap:.8rem; }
+    .type-btn { display:flex; align-items:center; justify-content:center; gap:.5rem; padding:.9rem; border-radius:var(--radius-md); border:2px solid var(--line); background:color-mix(in srgb, var(--surface) 80%, transparent); color:var(--text-soft); font:inherit; font-weight:700; font-size:1rem; cursor:pointer; transition:all .25s ease; }
+    .type-btn mat-icon { font-size:1.3rem; width:1.3rem; height:1.3rem; }
+    .income-btn.active { background:color-mix(in srgb,var(--success) 12%,var(--surface)); border-color:var(--success); color:var(--success); }
+    .expense-btn.active { background:color-mix(in srgb,var(--danger) 12%,var(--surface)); border-color:var(--danger); color:var(--danger); }
 
-    .type-tabs {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.38rem;
-      background: var(--surface-soft);
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0.24rem;
-    }
+    /* Amount */
+    .amount-card { background: radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--primary) 10%, transparent), transparent 60%), color-mix(in srgb, var(--surface) 78%, transparent); }
+    .amount-row { display:flex; align-items:center; gap:1rem; margin:.8rem 0; padding-bottom:.8rem; border-bottom:1px solid color-mix(in srgb,var(--line) 60%,transparent); }
+    .currency-badge { width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg,var(--primary),var(--primary-strong)); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:800; flex-shrink:0; box-shadow:0 6px 14px color-mix(in srgb,var(--primary) 30%,transparent); }
+    .amount-input { border:none; background:transparent; font-size:2.4rem; font-weight:800; color:var(--text); width:100%; outline:none; font-family:'Outfit','Plus Jakarta Sans',sans-serif; }
+    .amount-input::placeholder { color:color-mix(in srgb,var(--text-soft) 50%,transparent); }
+    .quick-amounts { display:flex; flex-wrap:wrap; gap:.5rem; }
+    .quick-chip { border:1px solid var(--line); border-radius:999px; background:var(--surface-soft); color:var(--text-soft); font:inherit; font-size:.8rem; font-weight:700; padding:.3rem .8rem; cursor:pointer; transition:all .2s; }
+    .quick-chip.active, .quick-chip:hover { background:color-mix(in srgb,var(--primary) 12%,var(--surface)); border-color:color-mix(in srgb,var(--primary) 50%,var(--line)); color:var(--primary-strong); }
 
-    .type-tabs button {
-      border: 0;
-      border-radius: 999px;
-      background: transparent;
-      color: var(--text-soft);
-      font: inherit;
-      font-weight: 700;
-      padding: 0.56rem;
-      cursor: pointer;
-    }
+    /* Fields */
+    .fields-card { display:flex; flex-direction:column; gap:1.1rem; }
+    .field-group { display:flex; flex-direction:column; gap:.5rem; }
+    .field-label { margin:0; font-size:.85rem; font-weight:700; color:var(--text-soft); display:flex; align-items:center; gap:.4rem; }
+    .field-icon { font-size:1rem; width:1rem; height:1rem; color:var(--primary); }
+    .optional { font-weight:500; color:color-mix(in srgb,var(--text-soft) 60%,transparent); }
+    .styled-input { padding:.75rem 1rem; border:1px solid color-mix(in srgb,var(--line) 80%,transparent); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; font-size:.95rem; transition:border-color .2s,box-shadow .2s; }
+    .styled-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 14%,transparent); }
+    .hint-text { margin:.3rem 0 0; font-size:.78rem; color:var(--text-soft); display:flex; align-items:center; gap:.3rem; }
 
-    .type-tabs button.active {
-      background: linear-gradient(125deg, var(--primary), var(--primary-strong));
-      color: #fff;
-    }
+    /* Method pills */
+    .method-pills { display:flex; gap:.6rem; }
+    .method-pill { flex:1; display:flex; align-items:center; justify-content:center; gap:.4rem; padding:.7rem; border:1.5px solid var(--line); border-radius:10px; background:var(--surface-soft); color:var(--text-soft); font:inherit; font-size:.85rem; font-weight:700; cursor:pointer; transition:all .2s; }
+    .method-pill mat-icon { font-size:1.1rem; width:1.1rem; height:1.1rem; }
+    .method-pill.active { background:color-mix(in srgb,var(--primary) 12%,var(--surface)); border-color:var(--primary); color:var(--primary-strong); }
+    .method-pill:hover:not(.active) { border-color:color-mix(in srgb,var(--primary) 40%,var(--line)); }
 
-    label {
-      display: grid;
-      gap: 0.36rem;
-    }
+    /* Alerts */
+    .txn-alert { border-radius:12px; padding:1rem; display:flex; align-items:center; gap:.6rem; font-weight:600; font-size:.9rem; }
+    .txn-alert mat-icon { font-size:1.2rem; width:1.2rem; height:1.2rem; }
+    .txn-alert.success { background:color-mix(in srgb,var(--success) 10%,var(--surface)); border:1px solid color-mix(in srgb,var(--success) 35%,transparent); color:color-mix(in srgb,var(--success) 90%,var(--text)); }
+    .txn-alert.error { background:color-mix(in srgb,var(--danger) 10%,var(--surface)); border:1px solid color-mix(in srgb,var(--danger) 35%,transparent); color:color-mix(in srgb,var(--danger) 90%,var(--text)); }
 
-    label span {
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
+    /* Save button */
+    .save-btn { width:100%; padding:1rem; border:none; border-radius:var(--radius-md); font:inherit; font-size:1.05rem; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:.6rem; transition:all .25s ease; color:#fff; }
+    .save-btn mat-icon { font-size:1.3rem; width:1.3rem; height:1.3rem; }
+    .income-save { background:linear-gradient(135deg,var(--success),color-mix(in srgb,var(--success) 80%,#000)); box-shadow:0 8px 20px color-mix(in srgb,var(--success) 28%,transparent); }
+    .expense-save { background:linear-gradient(135deg,var(--primary),var(--primary-strong)); box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 28%,transparent); }
+    .save-btn:hover:not(:disabled) { transform:translateY(-2px); filter:brightness(1.05); }
+    .save-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; }
 
-    input,
-    select {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: var(--text);
-      font: inherit;
-      padding: 0.7rem 0.8rem;
-    }
+    /* Category right col */
+    .cat-card { height:100%; display:flex; flex-direction:column; gap:1rem; }
+    .cat-card-header { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+    .cat-card-header .field-label { font-size:.95rem; }
+    .selected-badge { background:color-mix(in srgb,var(--primary) 15%,transparent); color:var(--primary-strong); border:1px solid color-mix(in srgb,var(--primary) 30%,transparent); padding:.15rem .6rem; border-radius:999px; font-size:.8rem; font-weight:700; }
+    .cat-search-row { display:flex; gap:.6rem; }
+    .cat-search-wrap { flex:1; position:relative; display:flex; align-items:center; }
+    .search-icon { position:absolute; left:.75rem; color:var(--text-soft); font-size:1.1rem; width:1.1rem; height:1.1rem; }
+    .cat-search-input { width:100%; padding:.75rem 2.5rem .75rem 2.4rem; border:1px solid var(--line); border-radius:10px; background:var(--surface); color:var(--text); font:inherit; font-size:.95rem; transition:border-color .2s,box-shadow .2s; }
+    .cat-search-input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 14%,transparent); }
+    .clear-search { position:absolute; right:.6rem; background:none; border:none; cursor:pointer; color:var(--text-soft); display:flex; align-items:center; }
+    .clear-search mat-icon { font-size:1rem; width:1rem; height:1rem; }
+    .add-cat-btn { width:44px; height:44px; border-radius:10px; border:1.5px dashed color-mix(in srgb,var(--primary) 50%,var(--line)); background:color-mix(in srgb,var(--primary) 8%,var(--surface)); color:var(--primary); display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:all .2s; }
+    .add-cat-btn:hover:not(:disabled) { background:color-mix(in srgb,var(--primary) 15%,var(--surface)); }
+    .add-cat-btn:disabled { opacity:.3; cursor:not-allowed; }
+    .recent-section { display:flex; flex-direction:column; gap:.5rem; }
+    .section-label { font-size:.75rem; font-weight:700; color:var(--text-soft); text-transform:uppercase; letter-spacing:.06em; }
+    .recent-chips { display:flex; flex-wrap:wrap; gap:.4rem; }
+    .recent-chip { display:inline-flex; align-items:center; gap:.3rem; border:1px solid var(--line); border-radius:999px; background:var(--surface-soft); color:var(--text); font:inherit; font-size:.8rem; font-weight:700; padding:.3rem .8rem .3rem .5rem; cursor:pointer; transition:all .2s; }
+    .recent-chip mat-icon { font-size:.9rem; width:.9rem; height:.9rem; color:var(--primary-strong); }
+    .recent-chip.active, .recent-chip:hover { background:color-mix(in srgb,var(--primary) 12%,var(--surface)); border-color:color-mix(in srgb,var(--primary) 50%,var(--line)); color:var(--primary-strong); }
+    .cat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(88px,1fr)); gap:.6rem; max-height:380px; overflow-y:auto; padding-right:2px; }
+    .cat-grid::-webkit-scrollbar { width:4px; }
+    .cat-grid::-webkit-scrollbar-thumb { background:var(--line); border-radius:2px; }
+    .cat-tile { position:relative; display:flex; flex-direction:column; align-items:center; gap:.5rem; padding:.9rem .5rem; border:1.5px solid var(--line); border-radius:14px; background:var(--surface); cursor:pointer; transition:all .2s ease; text-align:center; }
+    .cat-tile:hover { transform:translateY(-2px); border-color:color-mix(in srgb,var(--primary) 50%,var(--line)); box-shadow:0 6px 16px rgba(0,0,0,.06); }
+    .cat-tile.active { border-color:var(--primary); background:color-mix(in srgb,var(--primary) 10%,var(--surface)); }
+    .cat-icon-wrap { width:40px; height:40px; border-radius:12px; background:color-mix(in srgb,var(--primary) 12%,var(--surface-soft)); display:flex; align-items:center; justify-content:center; color:var(--primary-strong); }
+    .cat-icon-wrap mat-icon { font-size:1.25rem; width:1.25rem; height:1.25rem; }
+    .cat-name { font-size:.72rem; font-weight:700; color:var(--text); line-height:1.2; }
+    .cat-check { position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; }
+    .cat-check mat-icon { font-size:.85rem; width:.85rem; height:.85rem; }
+    .cat-empty { grid-column:1/-1; padding:3rem 1rem; text-align:center; color:var(--text-soft); }
+    .cat-empty mat-icon { font-size:2.5rem; width:2.5rem; height:2.5rem; margin-bottom:.5rem; }
 
-    input:focus,
-    select:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
-    }
-
-    .amount-box {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-md);
-      background: var(--surface-soft);
-      padding: 0.8rem;
-    }
-
-    .amount-row {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .amount-row i {
-      font-style: normal;
-      color: #fff;
-      font-size: 1rem;
-      font-weight: 800;
-      line-height: 1;
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-      border: 1px solid color-mix(in srgb, var(--primary) 65%, var(--line));
-      box-shadow: 0 8px 16px color-mix(in srgb, var(--primary) 24%, transparent);
-      flex-shrink: 0;
-    }
-
-    .amount-row input {
-      border: 0;
-      border-bottom: 2px solid var(--line);
-      border-radius: 0;
-      background: transparent;
-      font-size: 2.2rem;
-      font-weight: 800;
-      padding: 0.22rem 0 0.1rem;
-      min-width: 0;
-      width: 100%;
-    }
-
-    .amount-row input:focus {
-      box-shadow: none;
-      border-bottom-color: var(--primary);
-    }
-
-    .category-field {
-      display: grid;
-      gap: 0.36rem;
-    }
-
-    .category-field > span {
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .quick-amounts p,
-    .recent-cats p {
-      color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .amount-chips {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
-      margin-top: 0.35rem;
-    }
-
-    .chip {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--surface);
-      color: var(--text);
-      padding: 0.4rem 0.68rem;
-      font: inherit;
-      font-size: 0.82rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-
-    .chip.active {
-      border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
-      background: color-mix(in srgb, var(--primary) 11%, var(--surface));
-      color: var(--primary-strong);
-    }
-
-    .category-tools {
-      display: grid;
-      gap: 0.4rem;
-    }
-
-    .category-tools input {
-      padding: 0.56rem 0.7rem;
-    }
-
-    .merge-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.4rem;
-    }
-
-    .add-custom {
-      border-radius: 10px;
-      padding: 0.55rem 0.74rem;
-    }
-
-    .hint {
-      color: var(--text-soft);
-      font-size: 0.74rem;
-      font-weight: 600;
-    }
-
-    .recent-cats {
-      margin-top: 0.2rem;
-      display: grid;
-      gap: 0.32rem;
-    }
-
-    .recent-cats > div {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.32rem;
-    }
-
-    .recent-cats button {
-      border: 1px solid var(--line);
-      background: var(--surface);
-      color: var(--text-soft);
-      border-radius: 999px;
-      padding: 0.32rem 0.58rem;
-      font: inherit;
-      font-size: 0.77rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.2rem;
-      cursor: pointer;
-    }
-
-    .recent-cats button mat-icon {
-      width: 13px;
-      height: 13px;
-      font-size: 13px;
-      color: var(--primary-strong);
-    }
-
-    .category-list {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0.38rem;
-      max-height: 250px;
-      overflow: auto;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 0.45rem;
-      background: var(--surface-soft);
-    }
-
-    .cat-option {
-      border: 1px solid transparent;
-      background: var(--surface);
-      color: var(--text);
-      border-radius: 12px;
-      padding: 0.52rem 0.58rem;
-      font: inherit;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 0.6rem;
-      cursor: pointer;
-      text-align: left;
-    }
-
-    .cat-left {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .cat-option mat-icon {
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-      color: var(--primary-strong);
-    }
-
-    .cat-option .check {
-      opacity: 0;
-      color: var(--success);
-      transition: opacity 0.18s ease;
-    }
-
-    .cat-option.active {
-      border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
-      background: color-mix(in srgb, var(--primary) 11%, var(--surface));
-    }
-
-    .cat-option.active .check {
-      opacity: 1;
-    }
-
-    .empty-list {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 0.84rem;
-      padding: 0.3rem;
-      text-align: center;
-    }
-
-    .save {
-      width: 100%;
-      margin-top: 0.22rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.45rem;
-    }
-
-    .payment-method {
-      display: grid;
-      gap: 0.36rem;
-    }
-
-    .payment-method > span {
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .method-tabs {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.38rem;
-      background: var(--surface-soft);
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 0.24rem;
-    }
-
-    .method-tabs button {
-      border: 0;
-      border-radius: 10px;
-      background: transparent;
-      color: var(--text-soft);
-      font: inherit;
-      font-weight: 700;
-      padding: 0.52rem;
-      cursor: pointer;
-    }
-
-    .method-tabs button.active {
-      color: var(--primary-strong);
-      background: color-mix(in srgb, var(--primary) 12%, var(--surface));
-      border: 1px solid color-mix(in srgb, var(--primary) 36%, var(--line));
-    }
-
-    .method-preview {
-      margin: 0.1rem 0 0;
-      color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .txn-alert {
-      margin: 0;
-      border-radius: 12px;
-      border: 1px solid var(--line);
-      background: var(--surface-soft);
-      padding: 0.6rem 0.72rem;
-      font-size: 0.82rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .txn-alert mat-icon {
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    .txn-alert.success {
-      border-color: color-mix(in srgb, var(--success) 35%, var(--line));
-      background: color-mix(in srgb, var(--success) 9%, var(--surface));
-      color: color-mix(in srgb, var(--success) 88%, var(--text));
-    }
-
-    .txn-alert.error {
-      border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
-      background: color-mix(in srgb, var(--danger) 10%, var(--surface));
-      color: color-mix(in srgb, var(--danger) 88%, var(--text));
-    }
-
-    .payment-source {
-      display: grid;
-      gap: 0.36rem;
-    }
-
-    .payment-source > span {
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .empty-source {
-      margin: 0;
-      border: 1px dashed var(--line);
-      border-radius: 12px;
-      background: var(--surface-soft);
-      color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 0.62rem 0.7rem;
-    }
-
-    @media (max-width: 700px) {
-      .amount-row input {
-        font-size: 1.9rem;
-      }
-    }
+    @media (max-width:900px) { .form-grid { grid-template-columns:1fr; } .right-col { order:-1; } .cat-grid { max-height:260px; } }
+    @media (max-width:500px) { .method-pills { flex-wrap:wrap; } }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -564,297 +341,271 @@ export class AddTransactionComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private transactionService = inject(TransactionService);
   private router = inject(Router);
-  private soundService = inject(SoundService);
+  private soundService = inject(SoundService); 
+  
+  private cdr = inject(ChangeDetectorRef);
   settingsService = inject(SettingsService);
 
   transactionForm!: FormGroup;
   maxDate = '';
+
+  // Plain properties (not signals) for template-driven parts — simpler & avoids computed-reactive-form mismatches
+  currentType: 'income' | 'expense' = 'expense';
+  selectedCategory = '';
+  categorySearch = '';
+  showPaymentSource = false;
+  paymentSourceLabel = '';
+  paymentSourceOptions: string[] = [];
+
+  filteredCats: Array<{ name: string; icon: string; kind: 'income' | 'expense' | 'both' }> = [];
+  recentCats: Array<{ name: string; icon: string }> = [];
+  canAddCustom = false;
+
   isSaving = signal(false);
   alertState = signal<{ type: 'success' | 'error'; message: string } | null>(null);
-  categorySearch = signal('');
-  paymentMethods: Array<'Cash' | 'Card' | 'Bank'> = ['Cash', 'Card', 'Bank'];
-  private alertTimeoutId: ReturnType<typeof setTimeout> | null = null;
-  cardOptions = computed(() => this.settingsService.cards());
-  bankAccountOptions = computed(() => this.settingsService.bankAccounts());
 
-  categories = signal<Array<{ name: string; icon: string; kind: 'income' | 'expense' | 'both' }>>([
-    { name: 'Salary', icon: 'payments', kind: 'income' },
-    { name: 'Freelance', icon: 'work', kind: 'income' },
-    { name: 'Investment', icon: 'trending_up', kind: 'income' },
-    { name: 'Gift Received', icon: 'redeem', kind: 'income' },
-    { name: 'Gifts', icon: 'card_giftcard', kind: 'expense' },
-    { name: 'Food', icon: 'restaurant', kind: 'expense' },
-    { name: 'Groceries', icon: 'local_grocery_store', kind: 'expense' },
-    { name: 'Transport', icon: 'directions_bus', kind: 'expense' },
-    { name: 'Travel', icon: 'flight', kind: 'expense' },
-    { name: 'Utilities', icon: 'bolt', kind: 'expense' },
-    { name: 'Entertainment', icon: 'movie', kind: 'expense' },
-    { name: 'Health', icon: 'health_and_safety', kind: 'expense' },
-    { name: 'Shopping', icon: 'shopping_bag', kind: 'expense' },
-    { name: 'Housing', icon: 'home', kind: 'expense' },
-    { name: 'Rent', icon: 'apartment', kind: 'expense' },
-    { name: 'Education', icon: 'school', kind: 'expense' },
-    { name: 'Subscriptions', icon: 'subscriptions', kind: 'expense' },
-    { name: 'Insurance', icon: 'shield', kind: 'expense' },
-    { name: 'Pet Care', icon: 'pets', kind: 'expense' }
+  allCategories = signal<Array<{ name: string; icon: string; kind: 'income' | 'expense' | 'both' }>>([
+    { name: 'Salary',        icon: 'payments',            kind: 'income' },
+    { name: 'Freelance',     icon: 'work',                kind: 'income' },
+    { name: 'Investment',    icon: 'trending_up',         kind: 'income' },
+    { name: 'Gift Received', icon: 'redeem',              kind: 'income' },
+    { name: 'Food',          icon: 'restaurant',          kind: 'expense' },
+    { name: 'Groceries',     icon: 'local_grocery_store', kind: 'expense' },
+    { name: 'Transport',     icon: 'directions_bus',       kind: 'expense' },
+    { name: 'Travel',        icon: 'flight',              kind: 'expense' },
+    { name: 'Utilities',     icon: 'bolt',                kind: 'expense' },
+    { name: 'Entertainment', icon: 'movie',               kind: 'expense' },
+    { name: 'Health',        icon: 'health_and_safety',   kind: 'expense' },
+    { name: 'Shopping',      icon: 'shopping_bag',        kind: 'expense' },
+    { name: 'Housing',       icon: 'home',                kind: 'expense' },
+    { name: 'Rent',          icon: 'apartment',           kind: 'expense' },
+    { name: 'Education',     icon: 'school',              kind: 'expense' },
+    { name: 'Subscriptions', icon: 'subscriptions',       kind: 'expense' },
+    { name: 'Insurance',     icon: 'shield',              kind: 'expense' },
+    { name: 'Gifts',         icon: 'card_giftcard',       kind: 'expense' },
+    { name: 'Pet Care',      icon: 'pets',                kind: 'expense' },
   ]);
 
-  filteredCategories = computed(() => {
-    const query = this.categorySearch().trim().toLowerCase();
-    const type = this.transactionForm?.get('type')?.value as 'income' | 'expense' | undefined;
-    return this.categories()
-      .filter(cat => !type || cat.kind === type)
-      .filter(cat => !query || cat.name.toLowerCase().includes(query));
-  });
+  readonly paymentMethods: Array<'Cash' | 'Card' | 'Bank'> = ['Cash', 'Card', 'Bank'];
+  quickAmounts: number[] = [10, 25, 50, 100];
 
-  recentCategories = computed(() => {
-    const type = this.transactionForm?.get('type')?.value as 'income' | 'expense' | undefined;
-    const recent = this.transactionService.allTransactions()
-      .filter(item => !type || item.type === type)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const found = new Set<string>();
-    const rows: Array<{ name: string; icon: string }> = [];
-    for (const item of recent) {
-      if (found.has(item.category)) continue;
-      const category = this.categories().find(c => c.name === item.category);
-      rows.push({ name: item.category, icon: category?.icon || 'label' });
-      found.add(item.category);
-      if (rows.length >= 5) break;
-    }
-    return rows;
-  });
-
-  quickAmounts = computed(() => {
-    const type = this.transactionForm?.get('type')?.value as 'income' | 'expense' | undefined;
-    if (type === 'income') return [500, 1000, 2500, 5000];
-    return [10, 25, 50, 100];
-  });
-
-  canAddCustomCategory = computed(() => {
-    const name = this.categorySearch().trim().toLowerCase();
-    if (!name) return false;
-    return !this.categories().some(cat => cat.name.toLowerCase() === name);
-  });
-
-  isPaymentSourceRequired = computed(() => {
-    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
-    return method === 'Card' || method === 'Bank';
-  });
-
-  paymentSourceLabel = computed(() => {
-    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
-    return method === 'Bank' ? 'Bank Account' : 'Card';
-  });
-
-  paymentSourceOptions = computed(() => {
-    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
-    if (method === 'Bank') return this.bankAccountOptions();
-    if (method === 'Card') return this.cardOptions();
-    return [];
-  });
-
-  selectedPaymentPreview = computed(() => {
-    const method = this.transactionForm?.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank' | undefined;
-    const source = String(this.transactionForm?.get('paymentSource')?.value || '').trim();
-    if (!method || method === 'Cash') return 'Selected: Cash';
-    if (!source) return `Selected: ${method}`;
-    return `Selected: ${method} - ${source}`;
-  });
+  private subs = new Subscription();
+  private alertTimer: ReturnType<typeof setTimeout> | null = null;
 
   ngOnInit(): void {
     const now = new Date();
-    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    this.maxDate = today;
+    this.maxDate = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+    ].join('-');
 
     this.transactionForm = this.fb.group({
-      type: ['expense', Validators.required],
-      amount: ['', [Validators.required, Validators.min(0.01)]],
-      category: ['', Validators.required],
-      date: [today, [Validators.required, this.noFutureDateValidator]],
-      description: [''],
+      type:          ['expense', Validators.required],
+      amount:        ['', [Validators.required, Validators.min(0.01)]],
+      category:      ['', Validators.required],
+      date:          [this.maxDate, [Validators.required, this.futureValidator]],
+      description:   [''],
       paymentMethod: ['Cash', Validators.required],
       paymentSource: [''],
     });
 
-    this.transactionForm.get('type')?.valueChanges.subscribe(() => this.syncCategoryForType());
-    this.syncPaymentSourceRequirement();
+    this.updateCategoryLists();
+    this.updateQuickAmounts();
+
+    this.subs.add(this.transactionForm.get('type')!.valueChanges.subscribe(t => {
+      this.currentType = t;
+      this.selectedCategory = '';
+      this.transactionForm.patchValue({ category: '' });
+      this.updateCategoryLists();
+      this.updateQuickAmounts();
+      this.cdr.markForCheck();
+    }));
   }
 
   ngOnDestroy(): void {
-    this.clearAlertTimeout();
+    this.subs.unsubscribe();
+    if (this.alertTimer) clearTimeout(this.alertTimer);
+  }
+
+  /** Recompute category grid + recent chips */
+  private updateCategoryLists(): void {
+    const q = this.categorySearch.trim().toLowerCase();
+    const cats = this.allCategories();
+    this.filteredCats = cats
+      .filter(c => c.kind === this.currentType)
+      .filter(c => !q || c.name.toLowerCase().includes(q));
+
+    this.canAddCustom = !!q && !cats.some(c => c.name.toLowerCase() === q);
+
+    const txns = this.transactionService.allTransactions()
+      .filter(t => t.type === this.currentType)
+      .sort((a, b) => +new Date(b.date) - +new Date(a.date));
+    const seen = new Set<string>();
+    this.recentCats = [];
+    for (const t of txns) {
+      if (seen.has(t.category)) continue;
+      const icon = cats.find(c => c.name === t.category)?.icon || 'label';
+      this.recentCats.push({ name: t.category, icon });
+      seen.add(t.category);
+      if (this.recentCats.length >= 5) break;
+    }
+  }
+
+  onSearch(): void {
+    this.updateCategoryLists();
+    this.cdr.markForCheck();
   }
 
   selectType(type: 'income' | 'expense'): void {
     this.transactionForm.patchValue({ type });
-    this.syncCategoryForType();
-    this.categorySearch.set('');
   }
 
-  selectCategory(category: string): void {
-    this.transactionForm.patchValue({ category });
-    this.transactionForm.get('category')?.markAsTouched();
-  }
-
-  onCategorySearch(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.categorySearch.set(target.value);
+  selectCategory(name: string): void {
+    this.selectedCategory = name;
+    this.transactionForm.patchValue({ category: name });
+    this.transactionForm.get('category')!.markAsTouched();
+    this.cdr.markForCheck();
   }
 
   addCustomCategory(): void {
-    if (!this.canAddCustomCategory()) return;
-    const name = this.categorySearch().trim();
-    const currentType = this.transactionForm.get('type')?.value as 'income' | 'expense';
-    this.categories.update(items => [...items, { name, icon: this.getAutoIcon(name), kind: currentType }]);
-    this.categorySearch.set('');
+    const name = this.categorySearch.trim();
+    if (!name) return;
+    this.allCategories.update(list => [...list, { name, icon: this.autoIcon(name), kind: this.currentType }]);
+    this.categorySearch = '';
+    this.updateCategoryLists();
     this.selectCategory(name);
   }
 
-  setQuickAmount(amount: number): void {
-    this.transactionForm.patchValue({ amount });
-    this.transactionForm.get('amount')?.markAsTouched();
+  setQuickAmount(amt: number): void {
+    this.transactionForm.patchValue({ amount: amt });
+    this.cdr.markForCheck();
   }
 
   selectPaymentMethod(method: 'Cash' | 'Card' | 'Bank'): void {
     this.transactionForm.patchValue({ paymentMethod: method });
-    this.syncPaymentSourceRequirement();
+    this.syncPaymentSource(method);
+    this.cdr.markForCheck();
   }
 
-  isQuickAmountSelected(amount: number): boolean {
-    return Number(this.transactionForm.get('amount')?.value || 0) === amount;
-  }
-
-  private getAutoIcon(name: string): string {
-    const value = name.toLowerCase();
-    if (value.includes('rent') || value.includes('house') || value.includes('home')) return 'home';
-    if (value.includes('food') || value.includes('meal') || value.includes('restaurant')) return 'restaurant';
-    if (value.includes('travel') || value.includes('trip')) return 'flight';
-    if (value.includes('shop')) return 'shopping_bag';
-    if (value.includes('health') || value.includes('medical')) return 'health_and_safety';
-    if (value.includes('car') || value.includes('transport') || value.includes('fuel')) return 'directions_car';
-    if (value.includes('salary') || value.includes('income') || value.includes('bonus')) return 'payments';
-    return 'label';
-  }
-
-  goBack(): void {
-    this.router.navigate(['/dashboard']);
-  }
-
-  private syncPaymentSourceRequirement(): void {
-    const paymentMethod = this.transactionForm.get('paymentMethod')?.value as 'Cash' | 'Card' | 'Bank';
-    const control = this.transactionForm.get('paymentSource');
-    if (!control) return;
-
-    if (paymentMethod === 'Card' || paymentMethod === 'Bank') {
-      control.setValidators([Validators.required]);
-      const options = paymentMethod === 'Card' ? this.cardOptions() : this.bankAccountOptions();
-      const current = String(control.value || '');
-      if (!current || !options.includes(current)) {
-        control.setValue(options[0] || '');
+  private syncPaymentSource(method: 'Cash' | 'Card' | 'Bank'): void {
+    const ctrl = this.transactionForm.get('paymentSource')!;
+    if (method === 'Card' || method === 'Bank') {
+      this.showPaymentSource = true;
+      this.paymentSourceLabel = method === 'Bank' ? 'Bank Account' : 'Card';
+      this.paymentSourceOptions = method === 'Card'
+        ? this.settingsService.cards()
+        : this.settingsService.bankAccounts();
+      // Only require if options exist (avoid blocking when no accounts set up)
+      if (this.paymentSourceOptions.length > 0) {
+        ctrl.setValidators([Validators.required]);
+        if (!ctrl.value) ctrl.setValue(this.paymentSourceOptions[0]);
+      } else {
+        ctrl.clearValidators();
       }
     } else {
-      control.clearValidators();
-      control.setValue('');
+      this.showPaymentSource = false;
+      ctrl.clearValidators();
+      ctrl.setValue('');
     }
+    ctrl.updateValueAndValidity({ emitEvent: false });
+  }
 
-    control.updateValueAndValidity({ emitEvent: false });
+  private updateQuickAmounts(): void {
+    this.quickAmounts = this.currentType === 'income' ? [500, 1000, 2500, 5000] : [10, 25, 50, 100];
+  }
+
+  /** True when the form is ready to submit */
+  isFormReady(): boolean {
+    if (this.isSaving()) return false;
+    if (this.transactionForm.invalid) return false;
+    return true;
   }
 
   async onSubmit(): Promise<void> {
-    if (this.transactionForm.invalid) return;
-
-    this.clearAlert();
-    this.isSaving.set(true);
-    const value = this.transactionForm.value;
-    if (this.isFutureDate(String(value.date || ''))) {
-      this.setAlert('error', 'Future date is not allowed. Please select today or a past date.');
+    if (!this.isFormReady()) {
+      // Mark all as touched to show validation errors
+      this.transactionForm.markAllAsTouched();
+      this.cdr.markForCheck();
       return;
     }
 
-    try {
-      const success = await this.transactionService.addTransaction({
-        type: value.type,
-        amount: Number(value.amount),
-        category: value.category,
-        date: new Date(value.date),
-        description: value.description || '',
-        paymentMethod: value.paymentMethod,
-        paymentSource: value.paymentSource || ''
-      });
+    this.clearAlert();
+    this.isSaving.set(true);
+    const v = this.transactionForm.value as {
+      type: 'income' | 'expense';
+      amount: string | number;
+      category: string;
+      date: string;
+      description: string;
+      paymentMethod: 'Cash' | 'Card' | 'Bank';
+      paymentSource: string;
+    };
 
-      if (!success) {
-        this.setAlert('error', 'Unable to add this transaction right now. Please try again.');
+    try {
+      const payload: Omit<Transaction, 'id'> = {
+        type: v.type,
+        amount: Number(v.amount),
+        category: v.category,
+        date: new Date(v.date),
+        description: v.description || '',
+        paymentMethod: v.paymentMethod,
+        paymentSource: v.paymentSource || '',
+      };
+
+      const ok = await this.transactionService.addTransaction(payload);
+      if (!ok) {
+        this.showAlert('error', 'Failed to save transaction. Please try again.');
         return;
       }
 
-      this.playTransactionSound(value.type as 'income' | 'expense');
-      this.setAlert('success', this.buildSuccessMessage(value.paymentMethod, value.paymentSource));
-      setTimeout(() => this.router.navigate(['/dashboard']), 700);
+      this.playSound(v.type as 'income' | 'expense');
+      const msg = `${v.type === 'income' ? 'Income' : 'Expense'} of ${this.settingsService.currencySymbol()}${Number(v.amount).toFixed(2)} recorded!`;
+      this.showAlert('success', msg);
+      setTimeout(() => this.router.navigate(['/dashboard']), 900);
     } finally {
       this.isSaving.set(false);
     }
   }
 
-  private buildSuccessMessage(paymentMethod: 'Cash' | 'Card' | 'Bank', paymentSource?: string): string {
-    const source = String(paymentSource || '').trim();
-    if (!source || paymentMethod === 'Cash') {
-      return 'Transaction added to your accounts.';
-    }
-    return `Transaction added to your ${paymentMethod.toLowerCase()} account: ${source}.`;
+  getMethodIcon(m: string): string {
+    return m === 'Cash' ? 'payments' : m === 'Card' ? 'credit_card' : 'account_balance';
   }
 
-  private playTransactionSound(type: 'income' | 'expense'): void {
-    if (!this.settingsService.transactionSounds()) {
-      return;
-    }
+  goBack(): void { this.router.navigate(['/dashboard']); }
 
-    if (type === 'income') {
-      this.soundService.playIncomeCoin();
-      return;
-    }
-
-    this.soundService.playExpenseCoin();
-  }
-
-  private setAlert(type: 'success' | 'error', message: string): void {
+  private showAlert(type: 'success' | 'error', message: string): void {
     this.alertState.set({ type, message });
-    this.clearAlertTimeout();
-    this.alertTimeoutId = setTimeout(() => this.alertState.set(null), 4500);
+    if (this.alertTimer) clearTimeout(this.alertTimer);
+    this.alertTimer = setTimeout(() => this.alertState.set(null), 5000);
   }
-
   private clearAlert(): void {
     this.alertState.set(null);
-    this.clearAlertTimeout();
+    if (this.alertTimer) { clearTimeout(this.alertTimer); this.alertTimer = null; }
   }
 
-  private clearAlertTimeout(): void {
-    if (!this.alertTimeoutId) return;
-    clearTimeout(this.alertTimeoutId);
-    this.alertTimeoutId = null;
+  private playSound(type: 'income' | 'expense'): void {
+    if (!this.settingsService.transactionSounds()) return;
+    type === 'income' ? this.soundService.playIncomeCoin() : this.soundService.playExpenseCoin();
   }
 
-  private noFutureDateValidator = (control: AbstractControl): ValidationErrors | null => {
-    const value = String(control.value || '');
-    return this.isFutureDate(value) ? { futureDate: true } : null;
+  private readonly futureValidator = (ctrl: AbstractControl): ValidationErrors | null => {
+    const val = String(ctrl.value || '');
+    if (!val) return null;
+    const selected = new Date(`${val}T00:00:00`).getTime();
+    const today = new Date(`${this.maxDate}T00:00:00`).getTime();
+    return selected > today ? { futureDate: true } : null;
   };
 
-  private isFutureDate(value: string): boolean {
-    if (!value) return false;
-    const selected = new Date(`${value}T00:00:00`);
-    const today = new Date(this.maxDate ? `${this.maxDate}T00:00:00` : new Date().toISOString().slice(0, 10) + 'T00:00:00');
-    return selected.getTime() > today.getTime();
-  }
-
-  private syncCategoryForType(): void {
-    const type = this.transactionForm.get('type')?.value as 'income' | 'expense' | undefined;
-    const selectedCategory = String(this.transactionForm.get('category')?.value || '');
-    if (!type || !selectedCategory) return;
-
-    const validForType = this.categories().some(
-      cat => cat.name === selectedCategory && cat.kind === type
-    );
-
-    if (!validForType) {
-      this.transactionForm.patchValue({ category: '' });
-    }
+  private autoIcon(name: string): string {
+    const n = name.toLowerCase();
+    if (n.includes('rent') || n.includes('home') || n.includes('house')) return 'home';
+    if (n.includes('food') || n.includes('eat') || n.includes('restaurant')) return 'restaurant';
+    if (n.includes('travel') || n.includes('trip')) return 'flight';
+    if (n.includes('shop')) return 'shopping_bag';
+    if (n.includes('health') || n.includes('medical')) return 'health_and_safety';
+    if (n.includes('car') || n.includes('fuel') || n.includes('transport')) return 'directions_car';
+    if (n.includes('salary') || n.includes('income') || n.includes('bonus')) return 'payments';
+    return 'label';
   }
 }

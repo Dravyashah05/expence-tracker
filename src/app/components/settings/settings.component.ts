@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,298 +14,295 @@ import { AuthService } from '../../services/auth.service';
         <header class="page-header">
           <div>
             <h1 class="page-title">Settings</h1>
-            <p class="page-subtitle">Control app appearance and localization preferences.</p>
+            <p class="page-subtitle">Personalize your app experience and manage your payment sources.</p>
           </div>
           <div class="header-actions">
             <button class="btn-outline info-btn" type="button" (click)="openInfo()">
+              <mat-icon>info</mat-icon>
               App Info
             </button>
-            <a routerLink="/dashboard" class="btn-outline">Back</a>
+            <a routerLink="/dashboard" class="btn-outline">
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </a>
           </div>
         </header>
 
-        <div class="grid-two">
-          <section class="surface-card panel profile-panel">
-            <div>
-              <h2>Profile</h2>
-              <p class="helper-text">Manage account details and preferences snapshot.</p>
-            </div>
-            <div class="profile-meta">
-              <div>
-                <span class="label">Signed in as</span>
-                <strong>{{ authService.user()?.name || 'User' }}</strong>
-                <small>{{ authService.user()?.email || 'No email' }}</small>
+        <div class="settings-layout">
+          <div class="settings-main">
+            <section class="glass-card panel">
+              <div class="panel-header">
+                <mat-icon class="panel-icon">palette</mat-icon>
+                <h2>Appearance</h2>
               </div>
-              <a routerLink="/settings/profile" class="btn-solid">Open Profile</a>
-            </div>
-          </section>
-
-          <section class="surface-card panel">
-            <h2>Appearance</h2>
-
-            <label class="row switch-row">
-              <span>
-                <strong>Dark mode</strong>
-                <small>Switch between light and dark palette.</small>
-              </span>
-              <input type="checkbox" [checked]="settingsService.darkMode()" (change)="toggleDarkMode($event)">
-            </label>
-
-            <label>
-              <span>Theme color</span>
-              <select [value]="settingsService.themeColor()" (change)="onThemeColorChange($event)">
-                @for (color of settingsService.themeColors; track color) {
-                  <option [value]="color">{{ color }}</option>
-                }
-              </select>
-            </label>
-
-            <div class="swatches">
-              <span [style.background]="settingsService.currentTheme().primary"></span>
-              <span [style.background]="settingsService.currentTheme().secondary"></span>
-              <span [style.background]="settingsService.currentTheme().tertiary"></span>
-            </div>
-          </section>
-
-          <section class="surface-card panel">
-            <h2>Localization</h2>
-
-            <section class="currency-panel">
-              <div class="currency-head">
-                <div>
-                  <p class="currency-kicker">Primary Currency</p>
-                  <p class="currency-title">{{ selectedCurrencyLabel() }}</p>
+              
+              <div class="setting-item switch-item">
+                <div class="setting-info">
+                  <strong>Dark Mode</strong>
+                  <small>Switch between light and dark themes</small>
                 </div>
-                <span class="currency-badge">{{ settingsService.currencySymbol() }}</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" [checked]="settingsService.darkMode()" (change)="toggleDarkMode($event)">
+                  <span class="slider"></span>
+                </label>
               </div>
 
-              <label class="currency-select-row">
-                <span>Choose Currency</span>
-                <div class="currency-select-wrap">
-                  <select class="currency-select" [value]="settingsService.currency()" (change)="onCurrencyChange($event)">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <strong>Color Theme</strong>
+                  <small>Choose your preferred accent color</small>
+                </div>
+                <div class="theme-selector">
+                  @for (color of settingsService.themeColors; track color) {
+                    <button 
+                      class="theme-btn" 
+                      [class.active]="settingsService.themeColor() === color"
+                      (click)="setThemeColor(color)"
+                      [style.--btn-color]="getThemePreviewColor(color)"
+                      [attr.aria-label]="'Set theme to ' + color"
+                    >
+                      <mat-icon *ngIf="settingsService.themeColor() === color">check</mat-icon>
+                    </button>
+                  }
+                </div>
+              </div>
+            </section>
+
+            <section class="glass-card panel">
+              <div class="panel-header">
+                <mat-icon class="panel-icon">public</mat-icon>
+                <h2>Localization</h2>
+              </div>
+              
+              <div class="setting-item currency-section">
+                <div class="setting-info">
+                  <strong>Primary Currency</strong>
+                  <small>Used across all your transactions</small>
+                </div>
+                
+                <div class="currency-selector-wrap">
+                  <div class="currency-preview-box">
+                    <span class="currency-symbol">{{ settingsService.currencySymbol() }}</span>
+                    <span class="currency-label">{{ selectedCurrencyLabel() }}</span>
+                  </div>
+                  
+                  <select class="styled-select" [value]="settingsService.currency()" (change)="onCurrencyChange($event)">
                     @for (curr of settingsService.currencies; track curr.code) {
                       <option [value]="curr.code">{{ curr.label }}</option>
                     }
                   </select>
                 </div>
-              </label>
+                
+                <div class="quick-currencies mt-2">
+                  <span class="hint-text">Quick select:</span>
+                  @for (code of quickCurrencyCodes; track code) {
+                    <button
+                      type="button"
+                      class="quick-chip"
+                      [class.active]="settingsService.currency() === code"
+                      (click)="setCurrency(code)"
+                    >
+                      {{ code }}
+                    </button>
+                  }
+                </div>
+              </div>
 
-              <p class="currency-preview">Preview: {{ formattedCurrencyPreview() }}</p>
+              <div class="setting-item switch-item">
+                <div class="setting-info">
+                  <strong>Push Notifications</strong>
+                  <small>Receive updates about your budget</small>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [checked]="settingsService.notification()" (change)="toggleNotifications($event)">
+                  <span class="slider"></span>
+                </label>
+              </div>
 
-              <div class="quick-currencies">
-                @for (code of quickCurrencyCodes; track code) {
-                  <button
-                    type="button"
-                    class="quick-chip"
-                    [class.active]="settingsService.currency() === code"
-                    (click)="setCurrency(code)"
-                  >
-                    {{ code }}
-                  </button>
-                }
+              <div class="setting-item switch-item">
+                <div class="setting-info">
+                  <strong>Auto-Save</strong>
+                  <small>Automatically save changes to the cloud</small>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [checked]="settingsService.autoSave()" (change)="toggleAutoSave($event)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-item switch-item">
+                <div class="setting-info">
+                  <strong>Transaction Sounds</strong>
+                  <small>Play audio feedback on new entries</small>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" [checked]="settingsService.transactionSounds()" (change)="toggleTransactionSounds($event)">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="setting-item switch-item">
+                <div class="setting-info">
+                  <strong>Export Data</strong>
+                  <small>Download your transaction data in multiple formats</small>
+                </div>
+                <a routerLink="/export" class="btn-outline" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; text-decoration: none; border-radius: 8px; border: 1px solid var(--line); color: var(--text);">
+                  <mat-icon>download</mat-icon>
+                  Export
+                </a>
+              </div>
+
+              <div class="danger-zone">
+                <button class="btn-ghost danger-btn" type="button" (click)="resetSettings()">
+                  <mat-icon>restore</mat-icon>
+                  Reset to Defaults
+                </button>
               </div>
             </section>
+          </div>
 
-            <label class="row switch-row">
-              <span>
-                <strong>Notifications</strong>
-                <small>Allow important transaction alerts.</small>
-              </span>
-              <input type="checkbox" [checked]="settingsService.notification()" (change)="toggleNotifications($event)">
-            </label>
-
-            <label class="row switch-row">
-              <span>
-                <strong>Auto-save</strong>
-                <small>Store updates immediately.</small>
-              </span>
-              <input type="checkbox" [checked]="settingsService.autoSave()" (change)="toggleAutoSave($event)">
-            </label>
-
-            <label class="row switch-row">
-              <span>
-                <strong>Transaction sounds</strong>
-                <small>Play coin sounds for income and expense entries.</small>
-              </span>
-              <input type="checkbox" [checked]="settingsService.transactionSounds()" (change)="toggleTransactionSounds($event)">
-            </label>
-
-            <button class="btn-outline" type="button" (click)="resetSettings()">Reset Defaults</button>
-          </section>
-
-          <section class="surface-card panel">
-            <div class="sources-head">
-              <div>
-                <h2>Payment Sources</h2>
-                <p class="helper-text">Add multiple bank accounts and cards to use while creating transactions.</p>
+          <div class="settings-sidebar">
+            <section class="glass-card panel admin-card">
+              <div class="user-info">
+                <div class="avatar-circle">
+                  @if (authService.user()?.avatarUrl) {
+                    <img [src]="authService.user()?.avatarUrl" alt="Profile">
+                  } @else {
+                    {{ getInitials(authService.user()?.name) }}
+                  }
+                </div>
+                <div class="user-details">
+                  <h3>{{ authService.user()?.name || 'User' }}</h3>
+                  <p>{{ authService.user()?.email || 'No email associated' }}</p>
+                </div>
               </div>
-              <span class="count-chip">
-                <mat-icon style="font-size:14px;width:14px;height:14px;vertical-align:middle;">account_balance_wallet</mat-icon>
-                {{ totalSources() }} total
-              </span>
-            </div>
+              <a routerLink="/settings/profile" class="btn-solid full-width mt-3">
+                <mat-icon>manage_accounts</mat-icon>
+                Manage Profile
+              </a>
+            </section>
 
-            <div class="source-card">
-              <div class="source-title-row">
-                <strong><mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle;">account_balance</mat-icon>Bank Accounts</strong>
-                <small>{{ settingsService.bankAccounts().length }} saved</small>
+            <section class="glass-card panel">
+              <div class="panel-header payment-header">
+                <div style="display:flex;align-items:center;gap:0.5rem;">
+                  <mat-icon class="panel-icon">account_balance_wallet</mat-icon>
+                  <h2>Payment Sources</h2>
+                </div>
+                <span class="count-badge">{{ totalSources() }}</span>
               </div>
-              <div class="merge-row">
-                <div class="input-wrap" style="display:flex;align-items:center;gap:.42rem;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 .65rem;">
-                  <mat-icon style="font-size:16px;width:16px;height:16px;opacity:.8;flex-shrink:0;">domain</mat-icon>
+              <p class="panel-desc">Manage accounts available for transactions.</p>
+
+              <!-- Bank Accounts -->
+              <div class="source-group">
+                <h3 class="source-type-title">
+                  <mat-icon>account_balance</mat-icon>
+                  Bank Accounts
+                </h3>
+                
+                <div class="add-source-box">
                   <input
                     type="text"
                     [value]="newBankAccount"
                     (input)="onBankInput($event)"
-                    placeholder="e.g. Chase Checking"
+                    placeholder="E.g. Chase Checking"
                     (keydown.enter)="addBankAccount($event)"
-                    style="border:0;background:transparent;padding:.7rem 0;width:100%;min-width:0;outline:none;"
+                    class="source-input"
                   >
+                  <button type="button" class="btn-add" (click)="addBankAccount()" [disabled]="!canAddBankAccount(newBankAccount)">
+                    <mat-icon>add</mat-icon>
+                  </button>
                 </div>
-                <button type="button" class="btn-outline add-btn" (click)="addBankAccount()" [disabled]="!canAddBankAccount(newBankAccount)">
-                  <mat-icon style="font-size:16px;width:16px;height:16px;">add</mat-icon>
-                  Add
-                </button>
-              </div>
-              <small class="input-hint">Tip: press Enter to add quickly.</small>
-              @if (bankInputError) {
-                <p class="error-text">{{ bankInputError }}</p>
-              }
+                @if (bankInputError) { <p class="error-msg">{{ bankInputError }}</p> }
 
-              @if (settingsService.bankAccounts().length === 0) {
-                <div class="empty-source">No bank accounts added yet.</div>
-              } @else {
-                <div class="tag-list">
-                  @for (account of settingsService.bankAccounts(); track account) {
-                    <div class="tag">
-                      <span class="tag-text">{{ account }}</span>
-                      <button type="button" class="tag-remove" (click)="removeBankAccount(account)" aria-label="Remove bank account">
-                        <mat-icon>close</mat-icon>
-                      </button>
-                    </div>
+                <div class="source-items">
+                  @if (settingsService.bankAccounts().length === 0) {
+                    <div class="empty-state">No banks added</div>
+                  } @else {
+                    @for (account of settingsService.bankAccounts(); track account) {
+                      <div class="source-item">
+                        @if (editingBankAccount === account) {
+                          <input #editBank class="edit-input" [value]="editBankInput" (input)="editBankInput = editBank.value" (keydown.enter)="saveEditBankAccount(account)">
+                          <div class="item-actions">
+                            <button class="icon-btn success" (click)="saveEditBankAccount(account)"><mat-icon>check</mat-icon></button>
+                            <button class="icon-btn" (click)="cancelEditBankAccount()"><mat-icon>close</mat-icon></button>
+                          </div>
+                        } @else {
+                          <span class="source-name">{{ account }}</span>
+                          <div class="item-actions">
+                            <button class="icon-btn" (click)="startEditBankAccount(account)" title="Edit"><mat-icon>edit</mat-icon></button>
+                            <button class="icon-btn danger" (click)="removeBankAccount(account)" title="Delete"><mat-icon>delete</mat-icon></button>
+                          </div>
+                        }
+                      </div>
+                    }
                   }
                 </div>
-              }
-            </div>
-
-            <div class="source-card">
-              <div class="source-title-row">
-                <strong><mat-icon style="font-size:16px;width:16px;height:16px;vertical-align:middle;">credit_card</mat-icon>Cards</strong>
-                <small>{{ settingsService.cards().length }} saved</small>
               </div>
-              <div class="merge-row">
-                <div class="input-wrap" style="display:flex;align-items:center;gap:.42rem;border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:0 .65rem;">
-                  <mat-icon style="font-size:16px;width:16px;height:16px;opacity:.8;flex-shrink:0;">payments</mat-icon>
+
+              <hr class="divider">
+
+              <!-- Credit Cards -->
+              <div class="source-group">
+                <h3 class="source-type-title">
+                  <mat-icon>credit_card</mat-icon>
+                  Credit/Debit Cards
+                </h3>
+                
+                <div class="add-source-box">
                   <input
                     type="text"
                     [value]="newCard"
                     (input)="onCardInput($event)"
-                    placeholder="e.g. HDFC Visa 4421"
+                    placeholder="E.g. Visa x4421"
                     (keydown.enter)="addCard($event)"
-                    style="border:0;background:transparent;padding:.7rem 0;width:100%;min-width:0;outline:none;"
+                    class="source-input"
                   >
+                  <button type="button" class="btn-add" (click)="addCard()" [disabled]="!canAddCard(newCard)">
+                    <mat-icon>add</mat-icon>
+                  </button>
                 </div>
-                <button type="button" class="btn-outline add-btn" (click)="addCard()" [disabled]="!canAddCard(newCard)">
-                  <mat-icon style="font-size:16px;width:16px;height:16px;">add</mat-icon>
-                  Add
-                </button>
-              </div>
-              <small class="input-hint">Tip: add card name and last 4 digits for easy selection.</small>
-              @if (cardInputError) {
-                <p class="error-text">{{ cardInputError }}</p>
-              }
+                @if (cardInputError) { <p class="error-msg">{{ cardInputError }}</p> }
 
-              @if (settingsService.cards().length === 0) {
-                <div class="empty-source">No cards added yet.</div>
-              } @else {
-                <div class="tag-list">
-                  @for (card of settingsService.cards(); track card) {
-                    <div class="tag">
-                      <span class="tag-text">{{ card }}</span>
-                      <button type="button" class="tag-remove" (click)="removeCard(card)" aria-label="Remove card">
-                        <mat-icon>close</mat-icon>
-                      </button>
-                    </div>
+                <div class="source-items">
+                  @if (settingsService.cards().length === 0) {
+                    <div class="empty-state">No cards added</div>
+                  } @else {
+                    @for (card of settingsService.cards(); track card) {
+                      <div class="source-item">
+                        @if (editingCard === card) {
+                          <input #editCardEl class="edit-input" [value]="editCardInput" (input)="editCardInput = editCardEl.value" (keydown.enter)="saveEditCard(card)">
+                          <div class="item-actions">
+                            <button class="icon-btn success" (click)="saveEditCard(card)"><mat-icon>check</mat-icon></button>
+                            <button class="icon-btn" (click)="cancelEditCard()"><mat-icon>close</mat-icon></button>
+                          </div>
+                        } @else {
+                          <span class="source-name">{{ card }}</span>
+                          <div class="item-actions">
+                            <button class="icon-btn" (click)="startEditCard(card)" title="Edit"><mat-icon>edit</mat-icon></button>
+                            <button class="icon-btn danger" (click)="removeCard(card)" title="Delete"><mat-icon>delete</mat-icon></button>
+                          </div>
+                        }
+                      </div>
+                    }
                   }
                 </div>
-              }
-            </div>
-          </section>
+              </div>
+
+            </section>
+          </div>
         </div>
 
         @if (showInfoModal) {
           <div class="modal-backdrop" (click)="closeInfo()">
-            <section
-              class="info-modal surface-card"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="app-info-title"
-              (click)="$event.stopPropagation()"
-            >
+            <section class="info-modal glass-card" (click)="$event.stopPropagation()">
               <div class="modal-head">
-                <div>
-                  <p class="modal-kicker">About This App</p>
-                  <h2 id="app-info-title">Rupee Expense Tracker</h2>
-                </div>
-                <button class="close-btn" type="button" aria-label="Close information" (click)="closeInfo()">x</button>
+                <h2>About Rupee</h2>
+                <button class="icon-btn" (click)="closeInfo()"><mat-icon>close</mat-icon></button>
               </div>
-
-              <div class="modal-content">
-                <div class="app-brand">
-                  <span class="app-logo-wrap">
-                    <img src="/rupee-logo.png" alt="Rupee logo" class="app-logo">
-                  </span>
-                  <div>
-                    <p class="app-name">Rupee</p>
-                    <p class="app-tagline">Smart personal expense tracking for daily money decisions.</p>
-                  </div>
-                </div>
-
-                <div class="info-line">
-                  <span>Version</span>
-                  <strong>1.0.0</strong>
-                </div>
-                <div class="info-line">
-                  <span>GitHub</span>
-                  <a [href]="appGithubUrl" target="_blank" rel="noopener noreferrer" class="github-link">{{ appGithubHandle }}</a>
-                </div>
-                <p class="modal-desc">Track income, expenses, payment sources, and balance insights from one dashboard.</p>
-
-                <h3>Developer Team</h3>
-                <div class="developer-grid">
-                  @for (developer of developers; track developer.github) {
-                    <div class="developer-card">
-                      <div style="display:flex;align-items:center;gap:.5rem;">
-                        <span style="width:28px;height:28px;border-radius:999px;display:grid;place-items:center;font-weight:800;font-size:.72rem;background:color-mix(in srgb, var(--primary) 18%, var(--surface));border:1px solid var(--line);color:var(--primary-strong);">
-                          {{ developer.initials }}
-                        </span>
-                        <div style="display:grid;gap:.1rem;">
-                          <strong>{{ developer.name }}</strong>
-                          <p style="margin:0;">{{ developer.role }}</p>
-                        </div>
-                      </div>
-                      <a [href]="developer.githubUrl" target="_blank" rel="noopener noreferrer" class="github-link">{{ developer.github }}</a>
-                      <small>{{ developer.focus }}</small>
-                    </div>
-                  }
-                </div>
-
-                <div style="display:grid;gap:.45rem;margin-top:.1rem;">
-                  <h3 style="margin:0;">Social Media</h3>
-                  <div style="display:flex;flex-wrap:wrap;gap:.45rem;">
-                    <a [href]="socialLinks.instagram" target="_blank" rel="noopener noreferrer" aria-label="Instagram" title="Instagram" style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--line);background:color-mix(in srgb, var(--surface) 92%, transparent);color:var(--text);text-decoration:none;">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm10 2H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3Zm-5 3.5A4.5 4.5 0 1 1 7.5 12 4.5 4.5 0 0 1 12 7.5Zm0 2A2.5 2.5 0 1 0 14.5 12 2.5 2.5 0 0 0 12 9.5Zm4.75-3a1.25 1.25 0 1 1-1.25 1.25 1.25 1.25 0 0 1 1.25-1.25Z"/></svg>
-                    </a>
-                    <a [href]="socialLinks.facebook" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--line);background:color-mix(in srgb, var(--surface) 92%, transparent);color:var(--text);text-decoration:none;">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 22v-8h2.7l.4-3h-3.1V9.1c0-.9.3-1.5 1.6-1.5h1.7V4.9c-.3 0-1.3-.1-2.5-.1-2.5 0-4.2 1.5-4.2 4.4V11H7.5v3H10v8h3.5Z"/></svg>
-                    </a>
-                    <a [href]="socialLinks.github" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub" style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--line);background:color-mix(in srgb, var(--surface) 92%, transparent);color:var(--text);text-decoration:none;">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1 .1 1.7-.8 2.1-1.2.1-.8.4-1.4.7-1.8-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.2-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.6 1.6.2 2.8.1 3.1.8.9 1.2 1.9 1.2 3.2 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.3v3.4c0 .3.2.7.8.6A12 12 0 0 0 12 .5Z"/></svg>
-                    </a>
-                    <a [href]="socialLinks.twitter" target="_blank" rel="noopener noreferrer" aria-label="Twitter" title="Twitter" style="width:30px;height:30px;border-radius:999px;display:grid;place-items:center;border:1px solid var(--line);background:color-mix(in srgb, var(--surface) 92%, transparent);color:var(--text);text-decoration:none;">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.9 2H22l-6.8 7.8L23 22h-6.1l-4.8-6.3L6.6 22H3.5l7.3-8.3L1.5 2h6.2l4.3 5.7L18.9 2Zm-1.1 18h1.7L6.7 4H4.9l12.9 16Z"/></svg>
-                    </a>
-                  </div>
+              <div class="modal-body">
+                <p><strong>Rupee Expense Tracker</strong> is a smart personal finance tool created natively for the modern web.</p>
+                <div class="social-links mt-3">
+                  <a [href]="socialLinks.github" target="_blank" class="btn-outline">View on GitHub</a>
                 </div>
               </div>
             </section>
@@ -317,549 +314,541 @@ import { AuthService } from '../../services/auth.service';
   styles: `
     :host {
       display: block;
+      animation: fadeIn 0.3s ease;
     }
 
-    .grid-two {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.95rem;
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
-    .panel {
-      padding: 0.95rem;
-      display: grid;
-      gap: 0.75rem;
-      align-content: start;
-    }
-
-    .profile-panel {
-      gap: 0.9rem;
-    }
-
-    .profile-meta {
+    .page-header {
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 0.7rem;
+      align-items: flex-start;
+      margin-bottom: 2rem;
       flex-wrap: wrap;
+      gap: 1rem;
     }
 
-    .profile-meta strong {
-      display: block;
-      font-size: 0.95rem;
-      color: var(--text);
-    }
-
-    .profile-meta small {
-      display: block;
-      color: var(--text-soft);
-      font-size: 0.8rem;
+    .page-title {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, var(--text), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.2rem;
     }
 
     .header-actions {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-    }
-
-    .info-btn {
-      border-color: color-mix(in srgb, var(--primary) 60%, var(--line));
-      color: var(--primary-strong);
-      background: color-mix(in srgb, var(--primary) 10%, var(--surface));
-    }
-
-    h2 {
-      font-size: 1.08rem;
-    }
-
-    .helper-text {
-      color: var(--text-soft);
-      font-size: 0.86rem;
-      margin: 0.1rem 0 0;
-    }
-
-    .label {
-      color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    label {
-      display: grid;
-      gap: 0.36rem;
-    }
-
-    label span {
-      color: var(--text-soft);
-      font-size: 0.83rem;
-      font-weight: 700;
-    }
-
-    label span strong {
-      display: block;
-      color: var(--text);
-      font-size: 0.9rem;
-    }
-
-    label small {
-      color: var(--text-soft);
-      font-size: 0.79rem;
-      font-weight: 500;
-    }
-
-    select {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: var(--text);
-      padding: 0.7rem;
-      font: inherit;
-    }
-
-    input {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: var(--text);
-      padding: 0.7rem;
-      font: inherit;
-    }
-
-    .currency-panel {
-      border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
-      border-radius: 16px;
-      background:
-        radial-gradient(220px 100px at 90% 10%, color-mix(in srgb, var(--primary) 13%, transparent), transparent),
-        color-mix(in srgb, var(--surface) 90%, transparent);
-      padding: 0.78rem;
-      display: grid;
-      gap: 0.62rem;
-    }
-
-    .currency-head {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
       gap: 0.8rem;
     }
 
-    .currency-kicker {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 0.74rem;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+    .header-actions .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.2rem;
+    }
+    
+    .header-actions .btn-outline mat-icon {
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
     }
 
-    .currency-title {
-      margin: 0.1rem 0 0;
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 1.5rem;
+    }
+
+    .glass-card {
+      background: color-mix(in srgb, var(--surface) 75%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid color-mix(in srgb, var(--line) 60%, #fff 20%);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+    }
+
+    .panel {
+      margin-bottom: 1.5rem;
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+      padding-bottom: 1rem;
+    }
+
+    .panel-icon {
+      color: var(--primary);
+      font-size: 1.8rem;
+      width: 1.8rem;
+      height: 1.8rem;
+    }
+
+    .panel-header h2 {
+      font-size: 1.3rem;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .setting-item {
+      padding: 1rem 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .switch-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .setting-info strong {
+      display: block;
       color: var(--text);
       font-size: 1rem;
-      font-weight: 800;
+      margin-bottom: 0.2rem;
     }
 
-    .currency-badge {
-      width: 34px;
-      height: 34px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
-      border: 1px solid color-mix(in srgb, var(--primary) 60%, var(--line));
-      font-size: 0.95rem;
-      font-weight: 800;
-      box-shadow: 0 8px 14px color-mix(in srgb, var(--primary) 22%, transparent);
+    .setting-info small {
+      color: var(--text-soft);
+      font-size: 0.85rem;
     }
 
-    .currency-select-row {
-      display: grid;
-      gap: 0.34rem;
-    }
-
-    .currency-select-wrap {
+    /* Toggle Switch */
+    .toggle-switch {
       position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
     }
 
-    .currency-select {
-      border: 1px solid color-mix(in srgb, var(--line) 75%, #fff 25%);
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--line);
+      transition: .3s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    /* Themes */
+    .theme-selector {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .theme-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      background-color: var(--btn-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .theme-btn.active {
+      border-color: var(--text);
+      transform: scale(1.1);
+    }
+
+    /* Currency */
+    .currency-selector-wrap {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      align-items: center;
+    }
+
+    .currency-preview-box {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--line));
+      padding: 0.6rem 1rem;
       border-radius: 12px;
+    }
+
+    .currency-symbol {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .currency-label {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .styled-select {
+      flex: 1;
+      padding: 0.8rem;
+      border-radius: 12px;
+      border: 1px solid var(--line);
       background: var(--surface);
       color: var(--text);
-      padding: 0.65rem 0.72rem;
-      font: inherit;
-      font-weight: 700;
-      width: 100%;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      appearance: none;
+    }
+    
+    .styled-select:focus {
+      border-color: var(--primary);
+      outline: none;
     }
 
-    .currency-preview {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .quick-currencies {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.34rem;
-    }
+    .mt-2 { margin-top: 0.8rem; }
+    .mt-3 { margin-top: 1.2rem; }
 
     .quick-chip {
+      background: var(--surface-soft);
       border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--surface);
-      color: var(--text-soft);
-      font: inherit;
-      font-size: 0.75rem;
-      font-weight: 800;
-      padding: 0.28rem 0.62rem;
+      border-radius: 20px;
+      padding: 0.3rem 0.8rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
       cursor: pointer;
+      color: var(--text-soft);
     }
 
     .quick-chip.active {
-      color: var(--primary-strong);
-      border-color: color-mix(in srgb, var(--primary) 55%, var(--line));
-      background: color-mix(in srgb, var(--primary) 11%, var(--surface));
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
     }
 
-    .sources-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.7rem;
-      flex-wrap: wrap;
-    }
-
-    .count-chip {
-      border: 1px solid color-mix(in srgb, var(--primary) 45%, var(--line));
-      background: color-mix(in srgb, var(--primary) 14%, var(--surface));
-      color: var(--primary-strong);
-      border-radius: 999px;
-      padding: 0.26rem 0.58rem;
-      font-size: 0.76rem;
-      font-weight: 800;
-      white-space: nowrap;
-    }
-
-    .source-card {
-      display: grid;
-      gap: 0.5rem;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
-      padding: 0.7rem;
-    }
-
-    .source-title-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.7rem;
-    }
-
-    .source-title-row strong {
-      color: var(--text);
-      font-size: 0.9rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .source-title-row small {
+    .hint-text {
+      font-size: 0.8rem;
       color: var(--text-soft);
-      font-size: 0.76rem;
-      font-weight: 700;
+      margin-right: 0.5rem;
     }
 
-    .merge-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0.45rem;
-    }
-
-    .add-btn {
-      padding: 0.55rem 0.74rem;
-      border-radius: 10px;
-    }
-
-    .input-hint {
-      color: var(--text-soft);
-      font-size: 0.74rem;
-      font-weight: 600;
-    }
-
-    .tag-list {
+    /* Sidebar / Sources */
+    .admin-card {
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.35rem;
-      min-height: 1.8rem;
+      flex-direction: column;
       align-items: center;
-      margin-top: 0.14rem;
+      text-align: center;
+      padding: 2rem 1.5rem;
     }
 
-    .tag {
-      border: 1px solid var(--line);
-      background: color-mix(in srgb, var(--primary) 11%, var(--surface));
-      color: var(--text);
-      border-radius: 999px;
-      display: inline-flex;
+    .user-info {
+      display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 0.28rem;
-      padding: 0.2rem 0.3rem 0.2rem 0.58rem;
     }
 
-    .tag-text {
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--text);
-      line-height: 1.2;
-    }
-
-    .tag-remove {
-      border: 0;
-      width: 20px;
-      height: 20px;
+    .avatar-circle {
+      width: 72px;
+      height: 72px;
       border-radius: 50%;
-      display: grid;
-      place-items: center;
-      background: color-mix(in srgb, var(--surface) 55%, var(--line));
-      color: var(--text-soft);
-      font-size: 0.72rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
       font-weight: 800;
-      line-height: 1;
-      cursor: pointer;
-      transition: background 0.15s ease, color 0.15s ease;
+      margin-bottom: 1rem;
+      box-shadow: 0 8px 16px color-mix(in srgb, var(--primary) 30%, transparent);
+      overflow: hidden;
     }
 
-    .tag-remove:hover {
-      background: color-mix(in srgb, var(--danger) 24%, var(--surface));
-      color: var(--danger);
+    .avatar-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
-    .empty-source {
-      border: 1px dashed var(--line);
-      border-radius: 12px;
-      background: var(--surface-soft);
+    .user-details h3 {
+      margin: 0;
+      font-size: 1.3rem;
+    }
+
+    .user-details p {
+      margin: 0.3rem 0 0;
       color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 600;
-      padding: 0.62rem 0.68rem;
+      font-size: 0.9rem;
     }
 
+    .full-width {
+      width: 100%;
+      justify-content: center;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .payment-header {
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .count-badge {
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      color: var(--primary);
+      font-weight: 800;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+    }
+
+    .panel-desc {
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .divider {
+      border: 0;
+      height: 1px;
+      background: color-mix(in srgb, var(--line) 50%, transparent);
+      margin: 1.5rem 0;
+    }
+
+    .source-type-title {
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+    }
+
+    .source-type-title mat-icon {
+      color: var(--primary);
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    .add-source-box {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .source-input {
+      flex: 1;
+      padding: 0.6rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.95rem;
+    }
+
+    .source-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      width: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: filter 0.2s;
+    }
+
+    .btn-add:hover {
+      filter: brightness(1.1);
+    }
+    
+    .btn-add:disabled {
+      background: var(--line);
+      cursor: not-allowed;
+    }
+
+    .source-items {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .source-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.6rem 0.8rem;
+      background: var(--surface-soft);
+      border: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+      border-radius: 8px;
+      transition: border-color 0.2s;
+    }
+
+    .source-item:hover {
+      border-color: var(--primary);
+    }
+
+    .source-name {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .edit-input {
+      flex: 1;
+      border: none;
+      border-bottom: 2px solid var(--primary);
+      background: transparent;
+      padding: 0.2rem;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-right: 0.5rem;
+    }
+
+    .edit-input:focus {
+      outline: none;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 0.3rem;
+    }
+
+    .icon-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-soft);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .icon-btn mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+    
+    .icon-btn:hover { background: var(--line); color: var(--text); }
+    .icon-btn.danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
+    .icon-btn.success { color: var(--success); }
+    .icon-btn.success:hover { background: color-mix(in srgb, var(--success) 15%, transparent); }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.8rem;
+      margin-top: -0.5rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .empty-state {
+      padding: 1rem;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      background: color-mix(in srgb, var(--surface-soft) 50%, transparent);
+      border-radius: 8px;
+      border: 1px dashed var(--line);
+    }
+
+    .danger-zone {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px dashed var(--line);
+    }
+
+    .danger-btn {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 30%, var(--line));
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .danger-btn:hover {
+      background: color-mix(in srgb, var(--danger) 10%, transparent);
+    }
+
+    /* Modal */
     .modal-backdrop {
       position: fixed;
       inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
       z-index: 1000;
-      background: color-mix(in srgb, #000 52%, transparent);
-      display: grid;
-      place-items: center;
-      padding: 1rem;
-      backdrop-filter: blur(2px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .info-modal {
-      width: min(520px, 100%);
-      border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line));
-      box-shadow: var(--shadow-lg);
-      display: grid;
-      gap: 0.85rem;
-      padding: 1rem;
-      border-radius: 18px;
-      background:
-        radial-gradient(300px 140px at 100% 0%, color-mix(in srgb, var(--primary) 14%, transparent), transparent),
-        var(--surface);
+      width: 90%;
+      max-width: 450px;
+      padding: 2rem;
     }
 
     .modal-head {
       display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 0.8rem;
-      border-bottom: 1px solid var(--line);
-      padding-bottom: 0.7rem;
-    }
-
-    .modal-kicker {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 0.74rem;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .modal-head h2 {
-      margin: 0.2rem 0 0;
-      font-size: 1.05rem;
-    }
-
-    .close-btn {
-      width: 30px;
-      height: 30px;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      background: var(--surface-soft);
-      color: var(--text-soft);
-      font-weight: 800;
-      cursor: pointer;
-      display: grid;
-      place-items: center;
-      line-height: 1;
-      padding: 0;
-    }
-
-    .modal-content {
-      display: grid;
-      gap: 0.7rem;
-    }
-
-    .app-brand {
-      display: grid;
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      gap: 0.72rem;
-      border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
-      border-radius: 12px;
-      padding: 0.62rem;
-      background: color-mix(in srgb, var(--primary) 9%, var(--surface));
-    }
-
-    .app-logo-wrap {
-      width: 46px;
-      height: 46px;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid var(--line);
-      background: #fff;
-    }
-
-    .app-logo {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-    }
-
-    .info-line {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 0.7rem;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 0.56rem 0.65rem;
-      background: color-mix(in srgb, var(--surface) 92%, transparent);
-    }
-
-    .info-line span {
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .github-link {
-      color: var(--primary-strong);
-      text-decoration: none;
-      font-size: 0.8rem;
-      font-weight: 700;
-    }
-
-    .modal-desc {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 0.84rem;
-      line-height: 1.45;
-    }
-
-    .modal-content h3 {
-      margin: 0;
-      color: var(--text);
-      font-size: 0.9rem;
-    }
-
-    .developer-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.52rem;
-    }
-
-    .developer-card {
-      border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 0.58rem;
-      background: color-mix(in srgb, var(--surface) 93%, transparent);
-      display: grid;
-      gap: 0.24rem;
-    }
-
-    .developer-card strong {
-      color: var(--text);
-      font-size: 0.84rem;
-    }
-
-    .developer-card p {
-      margin: 0;
-      color: var(--text-soft);
-      font-size: 0.77rem;
-      font-weight: 600;
-    }
-
-    .developer-card small {
-      color: var(--text-soft);
-      font-size: 0.74rem;
-      font-weight: 600;
-    }
-
-    .error-text {
-      margin: 0;
-      color: var(--danger);
-      font-size: 0.76rem;
-      font-weight: 700;
-    }
-
-    .switch-row {
-      display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 0.7rem;
-      border-bottom: 1px solid var(--line);
-      padding: 0.55rem 0;
+      margin-bottom: 1rem;
     }
 
-    .switch-row input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--primary);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
+    .modal-head h2 { margin: 0; }
 
-    .swatches {
-      display: inline-flex;
-      gap: 0.44rem;
-    }
-
-    .swatches span {
-      width: 32px;
-      height: 32px;
-      border-radius: 10px;
-      border: 1px solid var(--line);
-    }
-
-    .btn-outline {
-      justify-self: start;
-    }
-
-    @media (max-width: 920px) {
-      .grid-two {
-        grid-template-columns: 1fr;
-      }
-
-      .developer-grid {
+    @media (max-width: 900px) {
+      .settings-layout {
         grid-template-columns: 1fr;
       }
     }
@@ -869,50 +858,49 @@ import { AuthService } from '../../services/auth.service';
 export class SettingsComponent {
   settingsService = inject(SettingsService);
   authService = inject(AuthService);
-  quickCurrencyCodes = ['USD', 'INR', 'EUR', 'GBP', 'AED', 'SGD'];
+  
+  quickCurrencyCodes = ['USD', 'INR', 'EUR', 'GBP'];
+  
   newBankAccount = '';
   newCard = '';
   bankInputError = '';
   cardInputError = '';
+  
+  editingBankAccount: string | null = null;
+  editBankInput = '';
+  
+  editingCard: string | null = null;
+  editCardInput = '';
+
   showInfoModal = false;
-  appGithubHandle = '@your-org/rupee-expense-tracker';
-  appGithubUrl = 'https://github.com/your-org/rupee-expense-tracker';
-  developers = [
-    {
-      name: 'Developer 1',
-      initials: 'D1',
-      role: 'Frontend Developer',
-      github: '@dev1',
-      githubUrl: 'https://github.com/dev1',
-      focus: 'UI/UX and Angular components'
-    },
-    {
-      name: 'Developer 2',
-      initials: 'D2',
-      role: 'Backend Developer',
-      github: '@dev2',
-      githubUrl: 'https://github.com/dev2',
-      focus: 'API, auth, and database integration'
-    },
-    {
-      name: 'Developer 3',
-      initials: 'D3',
-      role: 'Full Stack Developer',
-      github: '@dev3',
-      githubUrl: 'https://github.com/dev3',
-      focus: 'Analytics, testing, and deployment'
-    }
-  ];
   socialLinks = {
-    instagram: 'https://instagram.com/',
-    facebook: 'https://facebook.com/',
-    github: 'https://github.com/your-org/rupee-expense-tracker',
-    twitter: 'https://twitter.com/'
+    github: 'https://github.com/'
   };
+
+  getThemePreviewColor(colorName: string): string {
+    const map: Record<string, string> = {
+      'Blue': '#1f97d8',
+      'Purple': '#6f1dd6',
+      'Green': '#00b894',
+      'Red': '#cf3236',
+      'Orange': '#ff6d00',
+      'Indigo': '#3f51b5'
+    };
+    return map[colorName] || '#1f97d8';
+  }
+
+  getInitials(name?: string): string {
+    if (!name) return 'U';
+    return name.trim()[0].toUpperCase();
+  }
 
   toggleDarkMode(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.settingsService.updateSetting('darkMode', target.checked);
+  }
+
+  setThemeColor(color: string): void {
+    this.settingsService.updateSetting('themeColor', color);
   }
 
   onCurrencyChange(event: Event): void {
@@ -927,15 +915,6 @@ export class SettingsComponent {
   selectedCurrencyLabel(): string {
     const code = this.settingsService.currency();
     return this.settingsService.currencies.find(c => c.code === code)?.label || code;
-  }
-
-  formattedCurrencyPreview(): string {
-    return this.settingsService.getFormattedCurrency(12345.67);
-  }
-
-  onThemeColorChange(event: Event): void {
-    const target = event.target as HTMLSelectElement;
-    this.settingsService.updateSetting('themeColor', target.value);
   }
 
   toggleNotifications(event: Event): void {
@@ -960,20 +939,15 @@ export class SettingsComponent {
     this.settingsService.updateSetting('autoSave', true);
     this.settingsService.updateSetting('transactionSounds', true);
     this.settingsService.updateSetting('themeColor', 'Blue');
-    this.settingsService.updateSetting('bankAccounts', []);
-    this.settingsService.updateSetting('cards', []);
+    // We optionally let users keep payment sources when resetting appearance 
+    // but default behavior previously reset them
   }
 
+  // Bank Accounts Logic
   onBankInput(event: Event): void {
     const target = event.target as HTMLInputElement;
     this.newBankAccount = target.value;
     this.bankInputError = '';
-  }
-
-  onCardInput(event: Event): void {
-    const target = event.target as HTMLInputElement;
-    this.newCard = target.value;
-    this.cardInputError = '';
   }
 
   addBankAccount(event?: Event): void {
@@ -989,6 +963,52 @@ export class SettingsComponent {
     this.bankInputError = '';
   }
 
+  removeBankAccount(name: string): void {
+    this.settingsService.removeBankAccount(name);
+  }
+
+  startEditBankAccount(account: string): void {
+    this.editingBankAccount = account;
+    this.editBankInput = account;
+    this.bankInputError = '';
+  }
+
+  saveEditBankAccount(account: string): void {
+    const value = this.normalizeSourceName(this.editBankInput);
+    if (!value || value === account) {
+      this.cancelEditBankAccount();
+      return;
+    }
+    const existing = this.settingsService.bankAccounts().filter(a => a !== account);
+    const error = this.validateSource(value, existing);
+    if (error) {
+      this.bankInputError = error;
+      return;
+    }
+    // Update
+    this.settingsService.removeBankAccount(account);
+    this.settingsService.addBankAccount(value);
+    this.cancelEditBankAccount();
+  }
+
+  cancelEditBankAccount(): void {
+    this.editingBankAccount = null;
+    this.editBankInput = '';
+    this.bankInputError = '';
+  }
+
+  canAddBankAccount(value: string): boolean {
+    const clean = this.normalizeSourceName(value);
+    return !this.validateSource(clean, this.settingsService.bankAccounts());
+  }
+
+  // Cards Logic
+  onCardInput(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    this.newCard = target.value;
+    this.cardInputError = '';
+  }
+
   addCard(event?: Event): void {
     event?.preventDefault();
     const value = this.normalizeSourceName(this.newCard);
@@ -1002,17 +1022,37 @@ export class SettingsComponent {
     this.cardInputError = '';
   }
 
-  removeBankAccount(name: string): void {
-    this.settingsService.removeBankAccount(name);
-  }
-
   removeCard(name: string): void {
     this.settingsService.removeCard(name);
   }
 
-  canAddBankAccount(value: string): boolean {
-    const clean = this.normalizeSourceName(value);
-    return !this.validateSource(clean, this.settingsService.bankAccounts());
+  startEditCard(card: string): void {
+    this.editingCard = card;
+    this.editCardInput = card;
+    this.cardInputError = '';
+  }
+
+  saveEditCard(card: string): void {
+    const value = this.normalizeSourceName(this.editCardInput);
+    if (!value || value === card) {
+      this.cancelEditCard();
+      return;
+    }
+    const existing = this.settingsService.cards().filter(c => c !== card);
+    const error = this.validateSource(value, existing);
+    if (error) {
+      this.cardInputError = error;
+      return;
+    }
+    this.settingsService.removeCard(card);
+    this.settingsService.addCard(value);
+    this.cancelEditCard();
+  }
+
+  cancelEditCard(): void {
+    this.editingCard = null;
+    this.editCardInput = '';
+    this.cardInputError = '';
   }
 
   canAddCard(value: string): boolean {

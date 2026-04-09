@@ -16,197 +16,240 @@ import { MatIconModule } from '@angular/material/icon';
         <header class="page-header">
           <div>
             <h1 class="page-title">Profile</h1>
-            <p class="page-subtitle">Manage identity, security, and a quick view of your app preferences.</p>
+            <p class="page-subtitle">Manage identity, security, and view your preferences snapshot.</p>
           </div>
-          <a routerLink="/settings" class="btn-outline back-btn">
+          <a routerLink="/settings" class="btn-outline">
             <mat-icon>arrow_back</mat-icon>
             Back to Settings
           </a>
         </header>
 
         <section class="profile-grid">
-          <article class="surface-card panel profile-panel">
-            <div class="profile-hero">
-              <div class="hero-overlay"></div>
-              <div class="avatar" [class.with-image]="!!avatarUrl()">
-                @if (avatarUrl()) {
-                  <img [src]="avatarUrl()" alt="Profile image">
-                } @else {
-                  {{ initials() }}
-                }
-              </div>
-              <div class="hero-copy">
-                <h2>{{ userName() }}</h2>
-                <p>{{ userEmail() }}</p>
-                <div class="identity-chips">
-                  <span>Active Account</span>
-                  <span>{{ settingsService.currency() }} default</span>
+          <div class="main-column">
+            <!-- Hero Card -->
+            <article class="glass-card panel hero-panel">
+              <div class="profile-hero">
+                <div class="avatar-container">
+                  <div class="avatar-ring"></div>
+                  <div class="avatar" [class.with-image]="!!avatarUrl()">
+                    @if (avatarUrl()) {
+                      <img [src]="avatarUrl()" alt="Profile image">
+                    } @else {
+                      {{ initials() }}
+                    }
+                  </div>
+                  <button class="edit-avatar-btn" type="button" (click)="fileInputHero.click()" aria-label="Edit Profile Image">
+                    <mat-icon>photo_camera</mat-icon>
+                  </button>
+                  <input #fileInputHero type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+                </div>
+                <div class="hero-info">
+                  <h2>{{ userName() }}</h2>
+                  <p>{{ userEmail() }}</p>
+                  <div class="identity-chips">
+                    <span class="chip-active">Active</span>
+                    <span class="chip-currency">{{ settingsService.currency() }} default</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </article>
 
-            <div class="stats-grid">
-              <article class="mini-stat">
-                <span class="label"><mat-icon>badge</mat-icon>User ID</span>
-                <strong class="break-text">{{ userId() }}</strong>
-              </article>
-              <article class="mini-stat">
-                <span class="label"><mat-icon>verified</mat-icon>Status</span>
-                <strong>Active</strong>
-              </article>
-              <article class="mini-stat">
-                <span class="label"><mat-icon>schedule</mat-icon>Last Sign-In</span>
-                <strong>Stored Locally</strong>
-              </article>
-              <article class="mini-stat">
-                <span class="label"><mat-icon>shield</mat-icon>Security</span>
-                <strong>{{ isEditing() ? 'Editing Mode' : 'Protected' }}</strong>
-              </article>
-            </div>
+            <!-- Stats & Security Card -->
+            <article class="glass-card panel">
+              <div class="panel-header">
+                <mat-icon class="panel-icon">admin_panel_settings</mat-icon>
+                <h3>Account Details</h3>
+                <button class="btn-ghost icon-only-btn ml-auto" type="button" (click)="toggleEdit()" [title]="isEditing() ? 'Cancel' : 'Edit'">
+                  <mat-icon>{{ isEditing() ? 'close' : 'edit' }}</mat-icon>
+                </button>
+              </div>
 
-            <div class="profile-actions">
-              <button class="btn-outline" type="button" (click)="toggleEdit()">
-                <mat-icon>{{ isEditing() ? 'close' : 'edit' }}</mat-icon>
-                {{ isEditing() ? 'Cancel' : 'Edit Profile' }}
-              </button>
-              <button class="btn-solid" type="button" (click)="saveProfile()" [disabled]="profileForm.invalid || isSaving()">
-                @if (isSaving()) {
-                  <app-loader size="sm"></app-loader>
-                  Saving...
-                } @else {
-                  <mat-icon>check_circle</mat-icon>
-                  Save Changes
-                }
-              </button>
-            </div>
-
-            @if (isEditing()) {
-              <form class="edit-form" [formGroup]="profileForm">
-                <section class="edit-section">
-                  <h3>Identity</h3>
-                  <label>
-                    <span><mat-icon>person</mat-icon>Full Name</span>
-                    <input type="text" formControlName="name" placeholder="Your name">
-                  </label>
-                  <label>
-                    <span><mat-icon>mail</mat-icon>Email</span>
-                    <input type="email" formControlName="email" placeholder="you@example.com">
-                  </label>
-                </section>
-
-                <section class="edit-section upload-card">
-                  <div>
-                    <strong><mat-icon>photo_camera</mat-icon>Profile Image</strong>
-                    <small>JPEG/PNG, auto-compressed under 1 MB.</small>
+              @if (!isEditing()) {
+                <div class="stats-grid">
+                  <article class="mini-stat">
+                    <div class="stat-icon-wrap"><mat-icon>badge</mat-icon></div>
+                    <div class="stat-content">
+                      <span class="label">User ID</span>
+                      <strong class="break-text">{{ userId() }}</strong>
+                    </div>
+                  </article>
+                  <article class="mini-stat">
+                    <div class="stat-icon-wrap"><mat-icon>verified_user</mat-icon></div>
+                    <div class="stat-content">
+                      <span class="label">Status</span>
+                      <strong>Secure</strong>
+                    </div>
+                  </article>
+                  <article class="mini-stat">
+                    <div class="stat-icon-wrap"><mat-icon>schedule</mat-icon></div>
+                    <div class="stat-content">
+                      <span class="label">Last Sign-In</span>
+                      <strong>Local Session</strong>
+                    </div>
+                  </article>
+                  <article class="mini-stat">
+                    <div class="stat-icon-wrap"><mat-icon>shield</mat-icon></div>
+                    <div class="stat-content">
+                      <span class="label">Protection</span>
+                      <strong>Active</strong>
+                    </div>
+                  </article>
+                </div>
+              } @else {
+                <!-- Edit Form -->
+                <form class="edit-form fade-in" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+                  
+                  <div class="form-section">
+                    <h4>Personal Information</h4>
+                    <div class="input-group">
+                      <mat-icon class="input-icon">person</mat-icon>
+                      <input type="text" formControlName="name" placeholder="Full Name">
+                    </div>
+                    <div class="input-group">
+                      <mat-icon class="input-icon">mail</mat-icon>
+                      <input type="email" formControlName="email" placeholder="Email Address">
+                    </div>
                   </div>
-                  <div class="upload-actions">
-                    <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
-                    <button class="btn-outline" type="button" (click)="fileInput.click()">Upload Image</button>
-                    <button class="btn-ghost" type="button" (click)="removeAvatar()" [disabled]="!avatarUrl()">Remove</button>
+
+                  <div class="form-section password-section">
+                    <h4>Update Password <small>(Optional)</small></h4>
+                    <div class="input-group">
+                      <mat-icon class="input-icon">lock_outline</mat-icon>
+                      <input type="password" formControlName="currentPassword" placeholder="Current Password">
+                    </div>
+                    <div class="input-group">
+                      <mat-icon class="input-icon">vpn_key</mat-icon>
+                      <input type="password" formControlName="newPassword" placeholder="New Password">
+                    </div>
+                    <div class="input-group">
+                      <mat-icon class="input-icon">check_circle_outline</mat-icon>
+                      <input type="password" formControlName="confirmPassword" placeholder="Confirm New Password">
+                    </div>
                   </div>
-                  @if (uploadError()) {
-                    <p class="error">{{ uploadError() }}</p>
-                  }
-                </section>
 
-                <section class="edit-section security-card">
-                  <div>
-                    <strong><mat-icon>lock</mat-icon>Password</strong>
-                    <small>Leave empty if you are not changing password.</small>
+                  @if (saveMessage()) {
+                    <div class="alert alert-success">
+                      <mat-icon>check_circle</mat-icon>
+                      {{ saveMessage() }}
+                    </div>
+                  }
+                  @if (saveError()) {
+                    <div class="alert alert-error">
+                      <mat-icon>error</mat-icon>
+                      {{ saveError() }}
+                    </div>
+                  }
+
+                  <div class="form-actions">
+                    <button class="btn-outline" type="button" (click)="toggleEdit()">Cancel</button>
+                    <button class="btn-solid" type="submit" [disabled]="profileForm.invalid || isSaving()">
+                      @if (isSaving()) {
+                        <app-loader size="sm"></app-loader>
+                        Saving...
+                      } @else {
+                        <mat-icon>save</mat-icon>
+                        Save Changes
+                      }
+                    </button>
                   </div>
-                  <label>
-                    <span>Current Password</span>
-                    <input type="password" formControlName="currentPassword" placeholder="Current password">
-                  </label>
-                  <label>
-                    <span>New Password</span>
-                    <input type="password" formControlName="newPassword" placeholder="New password">
-                  </label>
-                  <label>
-                    <span>Confirm Password</span>
-                    <input type="password" formControlName="confirmPassword" placeholder="Confirm new password">
-                  </label>
-                </section>
+                </form>
+              }
+            </article>
 
-                @if (saveMessage()) {
-                  <p class="success">{{ saveMessage() }}</p>
-                }
-                @if (saveError()) {
-                  <p class="error">{{ saveError() }}</p>
-                }
-              </form>
-            }
-          </article>
-
-          <article class="surface-card panel snapshot-panel">
-            <div class="snapshot-head">
-              <h2>Preference Snapshot</h2>
-              <small>Live from your current settings</small>
-            </div>
-
-            <div class="snapshot-grid">
-              <article class="snapshot-item">
-                <span>Theme</span>
-                <strong>{{ settingsService.themeColor() }}</strong>
-              </article>
-              <article class="snapshot-item">
-                <span>Mode</span>
-                <strong>{{ settingsService.darkMode() ? 'Dark' : 'Light' }}</strong>
-              </article>
-              <article class="snapshot-item">
-                <span>Currency</span>
-                <strong>{{ settingsService.currency() }}</strong>
-              </article>
-              <article class="snapshot-item">
-                <span>Notifications</span>
-                <strong>{{ settingsService.notification() ? 'Enabled' : 'Off' }}</strong>
-              </article>
-              <article class="snapshot-item">
-                <span>Auto-save</span>
-                <strong>{{ settingsService.autoSave() ? 'On' : 'Off' }}</strong>
-              </article>
-              <article class="snapshot-item">
-                <span>Transaction Sounds</span>
-                <strong>{{ settingsService.transactionSounds() ? 'On' : 'Off' }}</strong>
-              </article>
-            </div>
-
-            <div class="sources-wrap">
-              <h3>Payment Sources</h3>
-              <div class="source-row">
-                <span>Bank Accounts</span>
-                <strong>{{ settingsService.bankAccounts().length }}</strong>
+            <!-- Dangerous Zone -->
+            <article class="glass-card panel danger-panel">
+              <div class="panel-header">
+                <mat-icon class="panel-icon danger-icon">warning_amber</mat-icon>
+                <h3 class="danger-text">Danger Zone</h3>
               </div>
-              <div class="source-pills">
-                @if (settingsService.bankAccounts().length === 0) {
-                  <span class="pill-muted">No bank accounts</span>
-                } @else {
-                  @for (account of settingsService.bankAccounts(); track account) {
-                    <span class="pill">{{ account }}</span>
-                  }
-                }
+              <p class="desc">Remove your profile avatar or permanently delete your local data. Use with caution.</p>
+              
+              <div class="danger-actions">
+                <button class="btn-ghost danger-btn" type="button" (click)="removeAvatar()" [disabled]="!avatarUrl()">
+                  <mat-icon>no_photography</mat-icon>
+                  Remove Avatar
+                </button>
+                <button class="btn-ghost danger-btn" type="button" (click)="handleLogout()">
+                  <mat-icon>logout</mat-icon>
+                  Sign Out
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <!-- Sidebar Preference Snapshot -->
+          <div class="sidebar-column">
+            <article class="glass-card panel sticky-snapshot">
+              <div class="panel-header">
+                <mat-icon class="panel-icon">data_usage</mat-icon>
+                <h3>App Snapshot</h3>
+              </div>
+              <p class="desc mb-3">Live view of your current configuration.</p>
+
+              <div class="snapshot-list">
+                <div class="snapshot-row">
+                  <div class="snap-left">
+                    <mat-icon>palette</mat-icon>
+                    <span>Theme Color</span>
+                  </div>
+                  <strong>{{ settingsService.themeColor() }}</strong>
+                </div>
+                
+                <div class="snapshot-row">
+                  <div class="snap-left">
+                    <mat-icon>dark_mode</mat-icon>
+                    <span>Dark Mode</span>
+                  </div>
+                  <strong>{{ settingsService.darkMode() ? 'On' : 'Off' }}</strong>
+                </div>
+
+                <div class="snapshot-row">
+                  <div class="snap-left">
+                    <mat-icon>payments</mat-icon>
+                    <span>Currency</span>
+                  </div>
+                  <strong>{{ settingsService.currency() }} ({{ settingsService.currencySymbol() }})</strong>
+                </div>
+
+                <div class="snapshot-row">
+                  <div class="snap-left">
+                    <mat-icon>notifications</mat-icon>
+                    <span>Notifications</span>
+                  </div>
+                  <strong [class.text-success]="settingsService.notification()">
+                    {{ settingsService.notification() ? 'Enabled' : 'Disabled' }}
+                  </strong>
+                </div>
               </div>
 
-              <div class="source-row">
-                <span>Cards</span>
-                <strong>{{ settingsService.cards().length }}</strong>
-              </div>
-              <div class="source-pills">
-                @if (settingsService.cards().length === 0) {
-                  <span class="pill-muted">No cards</span>
-                } @else {
-                  @for (card of settingsService.cards(); track card) {
-                    <span class="pill">{{ card }}</span>
-                  }
-                }
-              </div>
-            </div>
+              <div class="payment-sources-mini">
+                <h4>Payment Methods Setup</h4>
+                
+                <div class="source-mini-row">
+                  <span class="source-lbl"><mat-icon>account_balance</mat-icon> Banks</span>
+                  <span class="source-count">{{ settingsService.bankAccounts().length }}</span>
+                </div>
+                <div class="source-pills-mini">
+                  @if (settingsService.bankAccounts().length === 0) { <span class="pill-muted">None</span> }
+                  @for (acc of settingsService.bankAccounts(); track acc) { <span class="pill-mini">{{ acc }}</span> }
+                </div>
 
-            <a routerLink="/settings" class="btn-solid settings-link">
-              <mat-icon>tune</mat-icon>
-              Adjust Settings
-            </a>
-          </article>
+                <div class="source-mini-row mt-2">
+                  <span class="source-lbl"><mat-icon>credit_card</mat-icon> Cards</span>
+                  <span class="source-count">{{ settingsService.cards().length }}</span>
+                </div>
+                <div class="source-pills-mini">
+                  @if (settingsService.cards().length === 0) { <span class="pill-muted">None</span> }
+                  @for (card of settingsService.cards(); track card) { <span class="pill-mini">{{ card }}</span> }
+                </div>
+              </div>
+
+              <a routerLink="/settings" class="btn-solid full-w mt-4">
+                <mat-icon>tune</mat-icon>
+                Adjust Settings
+              </a>
+            </article>
+          </div>
         </section>
       </div>
     </section>
@@ -214,444 +257,571 @@ import { MatIconModule } from '@angular/material/icon';
   styles: `
     :host {
       display: block;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeInForm 0.3s ease-out forwards;
+    }
+
+    @keyframes fadeInForm {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .page-title {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, var(--text), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.2rem;
+    }
+
+    .btn-outline {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.6rem 1.2rem;
+    }
+    
+    .btn-outline mat-icon {
+      font-size: 1.2rem;
+      width: 1.2rem;
+      height: 1.2rem;
     }
 
     .profile-grid {
       display: grid;
-      grid-template-columns: 1.22fr 0.78fr;
-      gap: 0.95rem;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
       align-items: start;
     }
 
-    .panel {
-      padding: 1rem;
-      display: grid;
-      gap: 0.9rem;
-      align-content: start;
+    .glass-card {
+      background: color-mix(in srgb, var(--surface) 75%, transparent);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid color-mix(in srgb, var(--line) 60%, #fff 20%);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.5rem;
     }
 
-    .profile-panel {
-      gap: 1rem;
+    .panel-header {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .panel-icon {
+      color: var(--primary);
+      font-size: 1.8rem;
+      width: 1.8rem;
+      height: 1.8rem;
+    }
+    
+    .danger-icon {
+      color: var(--danger);
+    }
+
+    .panel-header h3 {
+      font-size: 1.25rem;
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .danger-text {
+      color: var(--danger);
+    }
+
+    .ml-auto {
+      margin-left: auto;
+    }
+
+    .icon-only-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .icon-only-btn:hover {
+      background: var(--surface-soft);
+      border-color: var(--line);
+    }
+
+    .desc {
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .mb-3 { margin-bottom: 1.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .mt-4 { margin-top: 1.8rem; }
+    
+    .full-w {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Hero Panel */
+    .hero-panel {
+      padding: 2rem;
+      background:
+        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 50%),
+        color-mix(in srgb, var(--surface) 75%, transparent);
     }
 
     .profile-hero {
-      position: relative;
-      border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line));
-      border-radius: 18px;
-      padding: 0.9rem;
       display: flex;
       align-items: center;
-      gap: 0.95rem;
-      background:
-        radial-gradient(260px 130px at 95% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent),
-        linear-gradient(135deg, color-mix(in srgb, var(--primary) 13%, var(--surface)) 0%, color-mix(in srgb, var(--surface) 90%, transparent) 100%);
-      overflow: hidden;
+      gap: 2rem;
     }
 
-    .hero-overlay {
+    .avatar-container {
+      position: relative;
+      width: 100px;
+      height: 100px;
+    }
+
+    .avatar-ring {
       position: absolute;
-      inset: 0;
-      background: linear-gradient(120deg, transparent 0%, color-mix(in srgb, var(--surface) 80%, transparent) 100%);
-      pointer-events: none;
+      inset: -4px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      opacity: 0.5;
+      animation: pulseRing 3s infinite alternate ease-in-out;
+    }
+
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.3; }
+      100% { transform: scale(1.05); opacity: 0.6; }
     }
 
     .avatar {
       position: relative;
-      z-index: 1;
-      width: 62px;
-      height: 62px;
-      border-radius: 18px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      display: grid;
-      place-items: center;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
       font-weight: 800;
-      color: white;
-      letter-spacing: 0.05em;
+      color: var(--primary);
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--line) 70%, #fff 30%);
-      box-shadow: 0 10px 18px color-mix(in srgb, var(--primary) 20%, transparent);
+      border: 3px solid var(--surface);
+      z-index: 2;
     }
 
     .avatar.with-image {
-      background: color-mix(in srgb, var(--surface) 80%, transparent);
+      background: transparent;
     }
 
     .avatar img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      display: block;
     }
 
-    .hero-copy {
-      position: relative;
-      z-index: 1;
-      min-width: 0;
+    .edit-avatar-btn {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 3px solid var(--surface);
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 3;
+      transition: transform 0.2s;
     }
 
-    .hero-copy h2 {
-      font-size: 1.1rem;
+    .edit-avatar-btn:hover {
+      transform: scale(1.1);
+    }
+
+    .edit-avatar-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .hero-info h2 {
+      font-size: 1.8rem;
       margin: 0;
+      font-weight: 800;
+      color: var(--text);
     }
 
-    .hero-copy p {
+    .hero-info p {
       color: var(--text-soft);
-      font-size: 0.85rem;
-      margin: 0.25rem 0 0;
-      overflow-wrap: anywhere;
+      font-size: 1.05rem;
+      margin: 0.2rem 0 0.8rem;
     }
 
     .identity-chips {
-      margin-top: 0.45rem;
       display: flex;
-      flex-wrap: wrap;
-      gap: 0.32rem;
+      gap: 0.5rem;
     }
 
-    .identity-chips span {
-      border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line));
-      border-radius: 999px;
-      padding: 0.18rem 0.56rem;
-      font-size: 0.72rem;
-      font-weight: 800;
+    .chip-active {
+      background: color-mix(in srgb, var(--success) 15%, transparent);
+      color: var(--success);
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+    }
+
+    .chip-currency {
+      background: color-mix(in srgb, var(--primary) 12%, transparent);
       color: var(--primary-strong);
-      background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
     }
 
+    /* Stats Grid */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 0.58rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
     }
 
     .mini-stat {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--surface) 90%, transparent);
-      padding: 0.62rem 0.7rem;
-      display: grid;
-      gap: 0.3rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.2rem;
+      background: var(--surface-soft);
+      border-radius: var(--radius-md);
+      border: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+      transition: transform 0.2s;
+    }
+
+    .mini-stat:hover {
+      transform: translateY(-2px);
+      border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+    }
+
+    .stat-icon-wrap {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--primary) 10%, transparent);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .stat-content {
+      display: flex;
+      flex-direction: column;
     }
 
     .label {
       color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .label mat-icon {
-      width: 15px;
-      height: 15px;
-      font-size: 15px;
-      color: var(--primary-strong);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
     }
 
     .mini-stat strong {
-      font-size: 0.96rem;
-      line-height: 1.25;
+      font-size: 1rem;
+      color: var(--text);
     }
 
     .break-text {
-      overflow-wrap: anywhere;
+      word-break: break-all;
     }
 
-    .profile-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.6rem;
-      align-items: center;
-    }
-
-    .profile-actions .btn-outline,
-    .profile-actions .btn-solid {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-    }
-
-    .profile-actions .btn-outline mat-icon,
-    .profile-actions .btn-solid mat-icon,
-    .settings-link mat-icon,
-    .back-btn mat-icon {
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-    }
-
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
+    /* Edit Form */
     .edit-form {
-      display: grid;
-      gap: 0.75rem;
-      border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
-      border-radius: 16px;
-      padding: 0.82rem;
-      background:
-        radial-gradient(240px 90px at 100% 0%, color-mix(in srgb, var(--primary) 10%, transparent), transparent),
-        color-mix(in srgb, var(--surface) 92%, transparent);
+      padding-top: 0.5rem;
     }
 
-    .edit-section {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 0.7rem;
-      display: grid;
-      gap: 0.6rem;
-      background: var(--surface);
-    }
-
-    .edit-section h3 {
-      font-size: 0.95rem;
-      margin: 0;
-    }
-
-    .edit-form label {
-      display: grid;
-      gap: 0.36rem;
-    }
-
-    .edit-form label span {
-      color: var(--text-soft);
-      font-size: 0.8rem;
-      font-weight: 700;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .edit-form label span mat-icon {
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-      color: var(--primary-strong);
-    }
-
-    .edit-form input {
-      border: 1px solid var(--line);
-      border-radius: var(--radius-sm);
-      background: var(--surface);
-      color: var(--text);
-      font: inherit;
-      padding: 0.7rem;
-    }
-
-    .edit-form input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 14%, transparent);
-    }
-
-    .upload-card {
-      border-style: dashed;
-    }
-
-    .upload-card strong {
-      display: block;
-      font-size: 0.9rem;
-      color: var(--text);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .upload-card small {
-      color: var(--text-soft);
-      font-size: 0.78rem;
-    }
-
-    .upload-card mat-icon {
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-      color: var(--primary-strong);
-    }
-
-    .security-card {
-      background: color-mix(in srgb, var(--surface) 94%, var(--bg));
-    }
-
-    .security-card strong {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .security-card mat-icon {
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-      color: var(--primary-strong);
-    }
-
-    .upload-actions {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .btn-ghost {
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 0.45rem 0.8rem;
-      background: transparent;
-      color: var(--text);
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .error {
-      margin: 0;
-      color: var(--danger);
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
-
-    .success {
-      margin: 0;
-      color: var(--success);
-      font-size: 0.82rem;
-      font-weight: 600;
-    }
-
-    .snapshot-panel {
-      position: sticky;
-      top: 0.8rem;
-      gap: 0.88rem;
-      background:
-        radial-gradient(240px 120px at 100% 0%, color-mix(in srgb, var(--primary) 13%, transparent), transparent),
-        var(--surface);
-    }
-
-    .snapshot-head {
-      display: grid;
-      gap: 0.18rem;
-    }
-
-    .snapshot-head h2 {
-      font-size: 1.05rem;
-    }
-
-    .snapshot-head small {
-      color: var(--text-soft);
-      font-size: 0.78rem;
-      font-weight: 700;
-    }
-
-    .snapshot-grid {
-      display: grid;
-      gap: 0.48rem;
-    }
-
-    .snapshot-item {
+    .form-section {
+      background: var(--surface-soft);
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: color-mix(in srgb, var(--surface) 90%, transparent);
-      padding: 0.58rem 0.64rem;
-      display: flex;
-      justify-content: space-between;
-      gap: 0.8rem;
-      align-items: center;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
     }
 
-    .snapshot-item span {
+    .form-section h4 {
+      margin: 0 0 1rem;
+      font-size: 1.05rem;
+      color: var(--text);
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1rem;
+    }
+
+    .input-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
       color: var(--text-soft);
-      font-size: 0.79rem;
-      font-weight: 700;
+      font-size: 1.2rem;
     }
 
-    .snapshot-item strong {
-      font-size: 0.89rem;
-    }
-
-    .sources-wrap {
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
-      padding: 0.68rem;
-      display: grid;
-      gap: 0.44rem;
-    }
-
-    .sources-wrap h3 {
-      margin: 0 0 0.2rem;
+    .input-group input {
+      width: 100%;
+      padding: 0.8rem 1rem 0.8rem 3rem;
+      background: var(--surface);
+      border: 1px solid color-mix(in srgb, var(--line) 80%, transparent);
+      border-radius: 10px;
+      font-family: inherit;
+      color: var(--text);
       font-size: 0.95rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
-    .source-row {
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
+    }
+
+    .alert {
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .alert-success {
+      background: color-mix(in srgb, var(--success) 12%, transparent);
+      color: color-mix(in srgb, var(--success) 80%, var(--text));
+      border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
+    }
+    
+    .alert-error {
+      background: color-mix(in srgb, var(--danger) 12%, transparent);
+      color: color-mix(in srgb, var(--danger) 80%, var(--text));
+      border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+    }
+
+    /* Danger actions */
+    .danger-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .danger-btn {
+      color: var(--danger);
+      border: 1px solid color-mix(in srgb, var(--danger) 50%, transparent);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .danger-btn:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--danger) 12%, transparent);
+    }
+    
+    .danger-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Sidebar Snapshot */
+    .sticky-snapshot {
+      position: sticky;
+      top: 1rem;
+    }
+
+    .snapshot-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+    }
+
+    .snapshot-row {
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px dashed color-mix(in srgb, var(--line) 60%, transparent);
+    }
+
+    .snapshot-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .snap-left {
+      display: flex;
       align-items: center;
       gap: 0.6rem;
+      color: var(--text-soft);
+      font-size: 0.9rem;
+      font-weight: 600;
     }
 
-    .source-row span {
-      color: var(--text-soft);
-      font-size: 0.79rem;
+    .snap-left mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .snapshot-row strong {
+      font-size: 0.95rem;
+      color: var(--text);
+    }
+
+    .text-success {
+      color: var(--success) !important;
+    }
+
+    .payment-sources-mini {
+      background: var(--surface-soft);
+      border-radius: 12px;
+      padding: 1.2rem;
+      border: 1px solid var(--line);
+    }
+
+    .payment-sources-mini h4 {
+      margin: 0 0 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
     }
 
-    .source-pills {
+    .source-mini-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .source-lbl {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.85rem;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .source-lbl mat-icon {
+      font-size: 1rem;
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .source-count {
+      background: color-mix(in srgb, var(--primary) 15%, transparent);
+      color: var(--primary);
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 0.1rem 0.5rem;
+      border-radius: 10px;
+    }
+
+    .source-pills-mini {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.28rem;
-      margin-bottom: 0.35rem;
+      gap: 0.4rem;
     }
 
-    .pill,
-    .pill-muted {
-      border-radius: 999px;
-      padding: 0.2rem 0.56rem;
-      font-size: 0.72rem;
-      font-weight: 700;
-      border: 1px solid var(--line);
+    .pill-mini {
       background: var(--surface);
-    }
-
-    .pill {
+      border: 1px solid var(--line);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
       color: var(--text);
     }
 
     .pill-muted {
+      background: transparent;
+      border: 1px dashed var(--line);
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
       color: var(--text-soft);
-      background: color-mix(in srgb, var(--surface-soft) 88%, transparent);
+      font-style: italic;
     }
 
-    .settings-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .btn-solid {
-      justify-self: start;
-    }
-
-    @media (max-width: 920px) {
+    @media (max-width: 980px) {
       .profile-grid {
         grid-template-columns: 1fr;
       }
-
-      .snapshot-panel {
+      
+      .sticky-snapshot {
         position: static;
       }
     }
 
-    @media (max-width: 640px) {
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
+    @media (max-width: 600px) {
       .profile-hero {
-        align-items: flex-start;
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+      }
+      
+      .identity-chips {
+        justify-content: center;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+      
+      .form-actions button {
+        width: 100%;
+        justify-content: center;
       }
     }
   `,
@@ -686,11 +856,7 @@ export class ProfileComponent {
 
   private toInitials(name?: string): string {
     if (!name) return 'U';
-    const parts = name.trim().split(/\s+/);
-    const first = parts[0]?.[0] ?? '';
-    const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? '' : '';
-    const combined = `${first}${last}` || first || 'U';
-    return combined.toUpperCase();
+    return name.trim()[0].toUpperCase();
   }
 
   toggleEdit(): void {
@@ -762,6 +928,11 @@ export class ProfileComponent {
     this.authService.updateProfile({ avatarUrl: undefined });
   }
 
+  handleLogout(): void {
+    // Basic logout logic to demonstrate app capability 
+    this.authService.logout();
+  }
+
   async onFileSelected(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -799,37 +970,16 @@ export class ProfileComponent {
           const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
           const targetWidth = Math.round(img.width * scale);
           const targetHeight = Math.round(img.height * scale);
-
+          
           const canvas = document.createElement('canvas');
           canvas.width = targetWidth;
           canvas.height = targetHeight;
           const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('ctx'));
-            return;
-          }
+          if (!ctx) return reject(new Error('no context'));
+          
           ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-
-          let quality = 0.85;
-          const tryEncode = () => {
-            canvas.toBlob(blob => {
-              if (!blob) {
-                reject(new Error('blob'));
-                return;
-              }
-              if (blob.size <= 1024 * 1024 || quality <= 0.5) {
-                const outReader = new FileReader();
-                outReader.onload = () => resolve(outReader.result as string);
-                outReader.onerror = () => reject(new Error('readout'));
-                outReader.readAsDataURL(blob);
-              } else {
-                quality -= 0.1;
-                tryEncode();
-              }
-            }, 'image/jpeg', quality);
-          };
-
-          tryEncode();
+          // Auto-compress jpeg
+          resolve(canvas.toDataURL('image/jpeg', 0.8));
         };
         img.src = reader.result as string;
       };
