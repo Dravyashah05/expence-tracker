@@ -12,16 +12,18 @@ import { LoaderComponent } from '../loader/loader.component';
   template: `
     <div class="login-page">
       <div class="login-container">
-
         <!-- Left Pitch Panel -->
         <aside class="pitch-panel">
           <div class="pitch-top">
             <div class="brand-badge">
-              <img src="/rupee-logo.png" alt="Rupee Logo" class="logo">
+              <img src="/rupee-logo.png" alt="Rupee Logo" class="logo" />
               Rupee
             </div>
             <h1>Smart money tracking for modern life.</h1>
-            <p>Get clear visibility into where your money goes. Track expenses, monitor income, and build better financial habits.</p>
+            <p>
+              Get clear visibility into where your money goes. Track expenses, monitor income, and
+              build better financial habits.
+            </p>
           </div>
 
           <div class="features">
@@ -64,17 +66,11 @@ import { LoaderComponent } from '../loader/loader.component';
           <div class="auth-card">
             <!-- Mode Switcher -->
             <div class="mode-switcher">
-              <button
-                type="button"
-                [class.active]="!isRegisterMode()"
-                (click)="setMode(false)">
+              <button type="button" [class.active]="!isRegisterMode()" (click)="setMode(false)">
                 <mat-icon>login</mat-icon>
                 Sign In
               </button>
-              <button
-                type="button"
-                [class.active]="isRegisterMode()"
-                (click)="setMode(true)">
+              <button type="button" [class.active]="isRegisterMode()" (click)="setMode(true)">
                 <mat-icon>person_add</mat-icon>
                 Register
               </button>
@@ -94,7 +90,7 @@ import { LoaderComponent } from '../loader/loader.component';
                     formControlName="email"
                     placeholder="Email address"
                     autocomplete="email"
-                  >
+                  />
                 </div>
                 <div class="input-group">
                   <mat-icon class="input-icon">lock</mat-icon>
@@ -103,7 +99,7 @@ import { LoaderComponent } from '../loader/loader.component';
                     formControlName="password"
                     placeholder="Password"
                     autocomplete="current-password"
-                  >
+                  />
                   <button type="button" class="vis-toggle" (click)="togglePassword()">
                     <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                   </button>
@@ -116,7 +112,11 @@ import { LoaderComponent } from '../loader/loader.component';
                   </div>
                 }
 
-                <button class="submit-btn" type="submit" [disabled]="loginForm.invalid || isLoading()">
+                <button
+                  class="submit-btn"
+                  type="submit"
+                  [disabled]="loginForm.invalid || isLoading()"
+                >
                   @if (isLoading()) {
                     <app-loader size="sm"></app-loader>
                     Signing in...
@@ -142,7 +142,7 @@ import { LoaderComponent } from '../loader/loader.component';
                     formControlName="name"
                     placeholder="Full name"
                     autocomplete="name"
-                  >
+                  />
                 </div>
                 <div class="input-group">
                   <mat-icon class="input-icon">mail</mat-icon>
@@ -151,7 +151,7 @@ import { LoaderComponent } from '../loader/loader.component';
                     formControlName="email"
                     placeholder="Email address"
                     autocomplete="email"
-                  >
+                  />
                 </div>
                 <div class="input-group">
                   <mat-icon class="input-icon">lock</mat-icon>
@@ -160,7 +160,7 @@ import { LoaderComponent } from '../loader/loader.component';
                     formControlName="password"
                     placeholder="Password (min. 6 characters)"
                     autocomplete="new-password"
-                  >
+                  />
                   <button type="button" class="vis-toggle" (click)="togglePassword()">
                     <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
                   </button>
@@ -173,7 +173,11 @@ import { LoaderComponent } from '../loader/loader.component';
                   </div>
                 }
 
-                <button class="submit-btn" type="submit" [disabled]="registerForm.invalid || isLoading()">
+                <button
+                  class="submit-btn"
+                  type="submit"
+                  [disabled]="registerForm.invalid || isLoading()"
+                >
                   @if (isLoading()) {
                     <app-loader size="sm"></app-loader>
                     Creating account...
@@ -187,7 +191,10 @@ import { LoaderComponent } from '../loader/loader.component';
 
             <div class="demo-cta">
               <mat-icon>info</mat-icon>
-              <span>Demo account: <strong>demo&#64;example.com</strong> / <strong>demo123</strong></span>
+              <span
+                >Demo account: <strong>demo&#64;example.com</strong> /
+                <strong>demo123</strong></span
+              >
             </div>
           </div>
         </section>
@@ -220,9 +227,18 @@ import { LoaderComponent } from '../loader/loader.component';
     /* ---- Pitch Panel ---- */
     .pitch-panel {
       background:
-        radial-gradient(ellipse 380px 200px at 100% 0%, color-mix(in srgb, var(--accent) 20%, transparent), transparent),
-        radial-gradient(ellipse 300px 180px at 0% 100%, color-mix(in srgb, var(--primary) 15%, transparent), transparent),
-        linear-gradient(145deg,
+        radial-gradient(
+          ellipse 380px 200px at 100% 0%,
+          color-mix(in srgb, var(--accent) 20%, transparent),
+          transparent
+        ),
+        radial-gradient(
+          ellipse 300px 180px at 0% 100%,
+          color-mix(in srgb, var(--primary) 15%, transparent),
+          transparent
+        ),
+        linear-gradient(
+          145deg,
           color-mix(in srgb, var(--primary) 18%, var(--surface)) 0%,
           var(--surface) 100%
         );
@@ -462,7 +478,9 @@ import { LoaderComponent } from '../loader/loader.component';
       color: var(--text);
       font: inherit;
       font-size: 0.95rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     }
 
     .input-group input:focus {
@@ -578,7 +596,7 @@ import { LoaderComponent } from '../loader/loader.component';
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
@@ -592,13 +610,13 @@ export class LoginComponent {
 
   loginForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   registerForm = this.fb.group({
     name: ['', [Validators.required]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]]
+    password: ['', [Validators.required, Validators.minLength(6)]],
   });
 
   setMode(isRegister: boolean): void {
@@ -608,7 +626,7 @@ export class LoginComponent {
   }
 
   togglePassword(): void {
-    this.showPassword.update(v => !v);
+    this.showPassword.update((v) => !v);
   }
 
   async onLogin(): Promise<void> {

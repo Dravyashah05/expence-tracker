@@ -16,14 +16,14 @@ export const routes: Routes = [
 
   { path: 'login', component: LoginComponent, canActivate: [guestGuard] },
 
-  { path: 'dashboard',        component: DashboardComponent,      canActivate: [authGuard] },
-  { path: 'add-transaction',  component: AddTransactionComponent, canActivate: [authGuard] },
-  { path: 'analytics',        component: AnalyticsComponent,      canActivate: [authGuard] },
-  { path: 'budget-goals',     component: BudgetGoalsComponent,    canActivate: [authGuard] },
-  { path: 'export',           component: ExportDataComponent,     canActivate: [authGuard] },
-  { path: 'transactions',     component: TransactionListComponent,canActivate: [authGuard] },
-  { path: 'settings',         component: SettingsComponent,       canActivate: [authGuard] },
-  { path: 'settings/profile', component: ProfileComponent,        canActivate: [authGuard] },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'add-transaction', component: AddTransactionComponent, canActivate: [authGuard] },
+  { path: 'analytics', component: AnalyticsComponent, canActivate: [authGuard] },
+  { path: 'budget-goals', component: BudgetGoalsComponent, canActivate: [authGuard] },
+  { path: 'export', component: ExportDataComponent, canActivate: [authGuard] },
+  { path: 'transactions', component: TransactionListComponent, canActivate: [authGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [authGuard] },
+  { path: 'settings/profile', component: ProfileComponent, canActivate: [authGuard] },
 
-  { path: '**', redirectTo: '/dashboard' }
+  { path: '**', redirectTo: '/dashboard' },
 ];

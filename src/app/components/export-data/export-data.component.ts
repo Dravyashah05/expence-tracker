@@ -1,4 +1,11 @@
-import { Component, inject, signal, computed, ChangeDetectionStrategy, PLATFORM_ID } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  PLATFORM_ID,
+} from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TransactionService } from '../../services/transaction.service';
@@ -42,7 +49,13 @@ import { LoaderComponent } from '../loader/loader.component';
           </article>
           <article class="surface-card metric-card">
             <p class="label">Net</p>
-            <p class="metric-value" [class.income]="netBalance() >= 0" [class.expense]="netBalance() < 0">{{ netBalance() | appCurrency }}</p>
+            <p
+              class="metric-value"
+              [class.income]="netBalance() >= 0"
+              [class.expense]="netBalance() < 0"
+            >
+              {{ netBalance() | appCurrency }}
+            </p>
           </article>
         </section>
 
@@ -50,24 +63,32 @@ import { LoaderComponent } from '../loader/loader.component';
           <article class="surface-card action-card">
             <h3><mat-icon>table_view</mat-icon>CSV Export</h3>
             <p>Great for spreadsheets and quick filters.</p>
-            <button class="btn-solid" (click)="exportCSV()" [disabled]="!hasTransactions()">Download CSV</button>
+            <button class="btn-solid" (click)="exportCSV()" [disabled]="!hasTransactions()">
+              Download CSV
+            </button>
           </article>
 
           <article class="surface-card action-card">
             <h3><mat-icon>data_object</mat-icon>JSON Export</h3>
             <p>Good for backups and structured integrations.</p>
-            <button class="btn-solid" (click)="exportJSON()" [disabled]="!hasTransactions()">Download JSON</button>
+            <button class="btn-solid" (click)="exportJSON()" [disabled]="!hasTransactions()">
+              Download JSON
+            </button>
           </article>
 
           <article class="surface-card action-card">
             <h3><mat-icon>description</mat-icon>Report Text</h3>
             <p>Simple human-readable report with summary and lines.</p>
-            <button class="btn-solid" (click)="exportPDF()" [disabled]="!hasTransactions()">Generate Report</button>
+            <button class="btn-solid" (click)="exportPDF()" [disabled]="!hasTransactions()">
+              Generate Report
+            </button>
           </article>
         </section>
 
         @if (exportStatus()) {
-          <p class="status" [class.error]="exportStatus().includes('Error')">{{ exportStatus() }}</p>
+          <p class="status" [class.error]="exportStatus().includes('Error')">
+            {{ exportStatus() }}
+          </p>
         }
       </div>
     </section>
@@ -149,7 +170,7 @@ import { LoaderComponent } from '../loader/loader.component';
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExportDataComponent {
   transactionService = inject(TransactionService);
@@ -165,8 +186,17 @@ export class ExportDataComponent {
 
   exportCSV(): void {
     const transactions = this.transactionService.allTransactions();
-    const headers = ['ID', 'Type', 'Category', 'Amount', 'Payment Method', 'Payment Source', 'Description', 'Date'];
-    const rows = transactions.map(t => [
+    const headers = [
+      'ID',
+      'Type',
+      'Category',
+      'Amount',
+      'Payment Method',
+      'Payment Source',
+      'Description',
+      'Date',
+    ];
+    const rows = transactions.map((t) => [
       t.id,
       t.type,
       t.category,
@@ -174,12 +204,12 @@ export class ExportDataComponent {
       t.paymentMethod || 'Cash',
       t.paymentSource || '',
       t.description,
-      new Date(t.date).toLocaleDateString()
+      new Date(t.date).toLocaleDateString(),
     ]);
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
     ].join('\n');
 
     this.downloadFile(csvContent, 'transactions.csv', 'text/csv');
@@ -196,8 +226,8 @@ export class ExportDataComponent {
         totalIncome: this.totalIncome(),
         totalExpenses: this.totalExpenses(),
         netBalance: this.netBalance(),
-        transactionCount: this.transactionCount()
-      }
+        transactionCount: this.transactionCount(),
+      },
     };
 
     const jsonContent = JSON.stringify(data, null, 2);
@@ -220,7 +250,7 @@ export class ExportDataComponent {
     report += `Transactions: ${this.transactionCount()}\n\n`;
     report += `TRANSACTIONS\n`;
 
-    transactions.forEach(t => {
+    transactions.forEach((t) => {
       report += `${new Date(t.date).toLocaleDateString()} | ${t.type.toUpperCase()} | ${t.category} | ${t.amount} | ${t.paymentMethod || 'Cash'} ${t.paymentSource || ''} | ${t.description || '-'}\n`;
     });
 

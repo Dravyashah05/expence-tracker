@@ -5,7 +5,7 @@ import { SettingsService } from '../services/settings.service';
 @Pipe({
   name: 'appCurrency',
   standalone: true,
-  pure: false
+  pure: false,
 })
 export class AppCurrencyPipe implements PipeTransform {
   private platformId = inject(PLATFORM_ID);
@@ -20,7 +20,7 @@ export class AppCurrencyPipe implements PipeTransform {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency: currencyCode,
-      maximumFractionDigits: maxFractionDigits
+      maximumFractionDigits: maxFractionDigits,
     }).format(numericValue);
   }
 

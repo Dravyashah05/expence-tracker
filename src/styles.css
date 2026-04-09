@@ -33,7 +33,7 @@
 
   /* Shadows */
   --shadow-sm: 0 2px 12px rgba(14, 28, 39, 0.06), 0 1px 3px rgba(14, 28, 39, 0.04);
-  --shadow-md: 0 8px 32px rgba(14, 28, 39, 0.10), 0 2px 8px rgba(14, 28, 39, 0.06);
+  --shadow-md: 0 8px 32px rgba(14, 28, 39, 0.1), 0 2px 8px rgba(14, 28, 39, 0.06);
   --shadow-lg: 0 20px 56px rgba(14, 28, 39, 0.14), 0 4px 16px rgba(14, 28, 39, 0.08);
 
   /* Glass */
@@ -61,19 +61,22 @@ html.dark-mode {
   --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
 
   --glass-bg: color-mix(in srgb, var(--surface) 72%, transparent);
-  --glass-border: color-mix(in srgb, var(--line) 55%, rgba(255,255,255,0.05) 30%);
+  --glass-border: color-mix(in srgb, var(--line) 55%, rgba(255, 255, 255, 0.05) 30%);
 }
 
 /* ============================================================
    RESET + BASE
 ============================================================ */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
+html,
+body {
   min-height: 100%;
   font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
   font-size: 16px;
@@ -84,7 +87,12 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -92,12 +100,22 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text);
 }
 
-p { line-height: 1.6; }
-a { color: inherit; text-decoration: none; }
+p {
+  line-height: 1.6;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
-img, svg { display: block; }
+img,
+svg {
+  display: block;
+}
 
-button { font-family: inherit; }
+button {
+  font-family: inherit;
+}
 
 app-root {
   display: block;
@@ -149,7 +167,9 @@ app-root {
 /* ============================================================
    SURFACE CARDS
 ============================================================ */
-.surface-card, .soft-card, .glass-card {
+.surface-card,
+.soft-card,
+.glass-card {
   background: var(--glass-bg);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -161,7 +181,8 @@ app-root {
 /* ============================================================
    BUTTONS
 ============================================================ */
-.btn-solid, .btn-primary {
+.btn-solid,
+.btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -174,28 +195,35 @@ app-root {
   font-weight: 700;
   padding: 0.7rem 1.4rem;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
   box-shadow: 0 4px 14px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 
-.btn-solid:hover, .btn-primary:hover {
+.btn-solid:hover,
+.btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px color-mix(in srgb, var(--primary) 40%, transparent);
   filter: brightness(1.05);
 }
 
-.btn-solid:active, .btn-primary:active {
+.btn-solid:active,
+.btn-primary:active {
   transform: translateY(0);
 }
 
-.btn-solid:disabled, .btn-primary:disabled {
+.btn-solid:disabled,
+.btn-primary:disabled {
   cursor: not-allowed;
   opacity: 0.5;
   transform: none;
   box-shadow: none;
 }
 
-.btn-outline, .btn-ghost {
+.btn-outline,
+.btn-ghost {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -208,10 +236,14 @@ app-root {
   font-weight: 600;
   padding: 0.65rem 1.2rem;
   cursor: pointer;
-  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    transform 0.2s;
 }
 
-.btn-outline:hover, .btn-ghost:hover {
+.btn-outline:hover,
+.btn-ghost:hover {
   border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
   background: color-mix(in srgb, var(--primary) 6%, var(--surface));
   transform: translateY(-1px);
@@ -259,19 +291,27 @@ app-root {
   letter-spacing: -0.03em;
 }
 
-.metric-value.income { color: var(--success); }
-.metric-value.expense { color: var(--danger); }
+.metric-value.income {
+  color: var(--success);
+}
+.metric-value.expense {
+  color: var(--danger);
+}
 
 /* ============================================================
    FORM INPUTS (global defaults)
 ============================================================ */
-input, select, textarea {
+input,
+select,
+textarea {
   font-family: inherit;
   font-size: 0.95rem;
   color: var(--text);
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 15%, transparent);
@@ -280,18 +320,36 @@ input:focus, select:focus, textarea:focus {
 /* ============================================================
    UTILITY
 ============================================================ */
-.text-muted { color: var(--text-soft); }
-.text-success { color: var(--success) !important; }
-.text-danger { color: var(--danger) !important; }
-.text-primary { color: var(--primary) !important; }
+.text-muted {
+  color: var(--text-soft);
+}
+.text-success {
+  color: var(--success) !important;
+}
+.text-danger {
+  color: var(--danger) !important;
+}
+.text-primary {
+  color: var(--primary) !important;
+}
 
 /* ============================================================
    SCROLLBAR (global)
 ============================================================ */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--primary) 40%, var(--line)); }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--primary) 40%, var(--line));
+}
 
 /* ============================================================
    RESPONSIVE

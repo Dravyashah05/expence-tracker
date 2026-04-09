@@ -16,7 +16,9 @@ import { MatIconModule } from '@angular/material/icon';
         <header class="page-header">
           <div>
             <h1 class="page-title">Profile</h1>
-            <p class="page-subtitle">Manage identity, security, and view your preferences snapshot.</p>
+            <p class="page-subtitle">
+              Manage identity, security, and view your preferences snapshot.
+            </p>
           </div>
           <a routerLink="/settings" class="btn-outline">
             <mat-icon>arrow_back</mat-icon>
@@ -33,15 +35,26 @@ import { MatIconModule } from '@angular/material/icon';
                   <div class="avatar-ring"></div>
                   <div class="avatar" [class.with-image]="!!avatarUrl()">
                     @if (avatarUrl()) {
-                      <img [src]="avatarUrl()" alt="Profile image">
+                      <img [src]="avatarUrl()" alt="Profile image" />
                     } @else {
                       {{ initials() }}
                     }
                   </div>
-                  <button class="edit-avatar-btn" type="button" (click)="fileInputHero.click()" aria-label="Edit Profile Image">
+                  <button
+                    class="edit-avatar-btn"
+                    type="button"
+                    (click)="fileInputHero.click()"
+                    aria-label="Edit Profile Image"
+                  >
                     <mat-icon>photo_camera</mat-icon>
                   </button>
-                  <input #fileInputHero type="file" accept="image/*" (change)="onFileSelected($event)" hidden>
+                  <input
+                    #fileInputHero
+                    type="file"
+                    accept="image/*"
+                    (change)="onFileSelected($event)"
+                    hidden
+                  />
                 </div>
                 <div class="hero-info">
                   <h2>{{ userName() }}</h2>
@@ -59,7 +72,12 @@ import { MatIconModule } from '@angular/material/icon';
               <div class="panel-header">
                 <mat-icon class="panel-icon">admin_panel_settings</mat-icon>
                 <h3>Account Details</h3>
-                <button class="btn-ghost icon-only-btn ml-auto" type="button" (click)="toggleEdit()" [title]="isEditing() ? 'Cancel' : 'Edit'">
+                <button
+                  class="btn-ghost icon-only-btn ml-auto"
+                  type="button"
+                  (click)="toggleEdit()"
+                  [title]="isEditing() ? 'Cancel' : 'Edit'"
+                >
                   <mat-icon>{{ isEditing() ? 'close' : 'edit' }}</mat-icon>
                 </button>
               </div>
@@ -97,17 +115,20 @@ import { MatIconModule } from '@angular/material/icon';
                 </div>
               } @else {
                 <!-- Edit Form -->
-                <form class="edit-form fade-in" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
-                  
+                <form
+                  class="edit-form fade-in"
+                  [formGroup]="profileForm"
+                  (ngSubmit)="saveProfile()"
+                >
                   <div class="form-section">
                     <h4>Personal Information</h4>
                     <div class="input-group">
                       <mat-icon class="input-icon">person</mat-icon>
-                      <input type="text" formControlName="name" placeholder="Full Name">
+                      <input type="text" formControlName="name" placeholder="Full Name" />
                     </div>
                     <div class="input-group">
                       <mat-icon class="input-icon">mail</mat-icon>
-                      <input type="email" formControlName="email" placeholder="Email Address">
+                      <input type="email" formControlName="email" placeholder="Email Address" />
                     </div>
                   </div>
 
@@ -115,15 +136,27 @@ import { MatIconModule } from '@angular/material/icon';
                     <h4>Update Password <small>(Optional)</small></h4>
                     <div class="input-group">
                       <mat-icon class="input-icon">lock_outline</mat-icon>
-                      <input type="password" formControlName="currentPassword" placeholder="Current Password">
+                      <input
+                        type="password"
+                        formControlName="currentPassword"
+                        placeholder="Current Password"
+                      />
                     </div>
                     <div class="input-group">
                       <mat-icon class="input-icon">vpn_key</mat-icon>
-                      <input type="password" formControlName="newPassword" placeholder="New Password">
+                      <input
+                        type="password"
+                        formControlName="newPassword"
+                        placeholder="New Password"
+                      />
                     </div>
                     <div class="input-group">
                       <mat-icon class="input-icon">check_circle_outline</mat-icon>
-                      <input type="password" formControlName="confirmPassword" placeholder="Confirm New Password">
+                      <input
+                        type="password"
+                        formControlName="confirmPassword"
+                        placeholder="Confirm New Password"
+                      />
                     </div>
                   </div>
 
@@ -142,7 +175,11 @@ import { MatIconModule } from '@angular/material/icon';
 
                   <div class="form-actions">
                     <button class="btn-outline" type="button" (click)="toggleEdit()">Cancel</button>
-                    <button class="btn-solid" type="submit" [disabled]="profileForm.invalid || isSaving()">
+                    <button
+                      class="btn-solid"
+                      type="submit"
+                      [disabled]="profileForm.invalid || isSaving()"
+                    >
                       @if (isSaving()) {
                         <app-loader size="sm"></app-loader>
                         Saving...
@@ -162,10 +199,17 @@ import { MatIconModule } from '@angular/material/icon';
                 <mat-icon class="panel-icon danger-icon">warning_amber</mat-icon>
                 <h3 class="danger-text">Danger Zone</h3>
               </div>
-              <p class="desc">Remove your profile avatar or permanently delete your local data. Use with caution.</p>
-              
+              <p class="desc">
+                Remove your profile avatar or permanently delete your local data. Use with caution.
+              </p>
+
               <div class="danger-actions">
-                <button class="btn-ghost danger-btn" type="button" (click)="removeAvatar()" [disabled]="!avatarUrl()">
+                <button
+                  class="btn-ghost danger-btn"
+                  type="button"
+                  (click)="removeAvatar()"
+                  [disabled]="!avatarUrl()"
+                >
                   <mat-icon>no_photography</mat-icon>
                   Remove Avatar
                 </button>
@@ -194,7 +238,7 @@ import { MatIconModule } from '@angular/material/icon';
                   </div>
                   <strong>{{ settingsService.themeColor() }}</strong>
                 </div>
-                
+
                 <div class="snapshot-row">
                   <div class="snap-left">
                     <mat-icon>dark_mode</mat-icon>
@@ -208,7 +252,11 @@ import { MatIconModule } from '@angular/material/icon';
                     <mat-icon>payments</mat-icon>
                     <span>Currency</span>
                   </div>
-                  <strong>{{ settingsService.currency() }} ({{ settingsService.currencySymbol() }})</strong>
+                  <strong
+                    >{{ settingsService.currency() }} ({{
+                      settingsService.currencySymbol()
+                    }})</strong
+                  >
                 </div>
 
                 <div class="snapshot-row">
@@ -224,14 +272,18 @@ import { MatIconModule } from '@angular/material/icon';
 
               <div class="payment-sources-mini">
                 <h4>Payment Methods Setup</h4>
-                
+
                 <div class="source-mini-row">
                   <span class="source-lbl"><mat-icon>account_balance</mat-icon> Banks</span>
                   <span class="source-count">{{ settingsService.bankAccounts().length }}</span>
                 </div>
                 <div class="source-pills-mini">
-                  @if (settingsService.bankAccounts().length === 0) { <span class="pill-muted">None</span> }
-                  @for (acc of settingsService.bankAccounts(); track acc) { <span class="pill-mini">{{ acc }}</span> }
+                  @if (settingsService.bankAccounts().length === 0) {
+                    <span class="pill-muted">None</span>
+                  }
+                  @for (acc of settingsService.bankAccounts(); track acc) {
+                    <span class="pill-mini">{{ acc }}</span>
+                  }
                 </div>
 
                 <div class="source-mini-row mt-2">
@@ -239,8 +291,12 @@ import { MatIconModule } from '@angular/material/icon';
                   <span class="source-count">{{ settingsService.cards().length }}</span>
                 </div>
                 <div class="source-pills-mini">
-                  @if (settingsService.cards().length === 0) { <span class="pill-muted">None</span> }
-                  @for (card of settingsService.cards(); track card) { <span class="pill-mini">{{ card }}</span> }
+                  @if (settingsService.cards().length === 0) {
+                    <span class="pill-muted">None</span>
+                  }
+                  @for (card of settingsService.cards(); track card) {
+                    <span class="pill-mini">{{ card }}</span>
+                  }
                 </div>
               </div>
 
@@ -261,8 +317,14 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .fade-in {
@@ -270,8 +332,12 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     @keyframes fadeInForm {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
     }
 
     .page-header {
@@ -297,7 +363,7 @@ import { MatIconModule } from '@angular/material/icon';
       gap: 0.4rem;
       padding: 0.6rem 1.2rem;
     }
-    
+
     .btn-outline mat-icon {
       font-size: 1.2rem;
       width: 1.2rem;
@@ -335,7 +401,7 @@ import { MatIconModule } from '@angular/material/icon';
       width: 1.8rem;
       height: 1.8rem;
     }
-    
+
     .danger-icon {
       color: var(--danger);
     }
@@ -376,10 +442,16 @@ import { MatIconModule } from '@angular/material/icon';
       margin-bottom: 1rem;
     }
 
-    .mb-3 { margin-bottom: 1.5rem; }
-    .mt-2 { margin-top: 1rem; }
-    .mt-4 { margin-top: 1.8rem; }
-    
+    .mb-3 {
+      margin-bottom: 1.5rem;
+    }
+    .mt-2 {
+      margin-top: 1rem;
+    }
+    .mt-4 {
+      margin-top: 1.8rem;
+    }
+
     .full-w {
       width: 100%;
       justify-content: center;
@@ -389,7 +461,11 @@ import { MatIconModule } from '@angular/material/icon';
     .hero-panel {
       padding: 2rem;
       background:
-        radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--primary) 12%, transparent), transparent 50%),
+        radial-gradient(
+          circle at 100% 0%,
+          color-mix(in srgb, var(--primary) 12%, transparent),
+          transparent 50%
+        ),
         color-mix(in srgb, var(--surface) 75%, transparent);
     }
 
@@ -415,8 +491,14 @@ import { MatIconModule } from '@angular/material/icon';
     }
 
     @keyframes pulseRing {
-      0% { transform: scale(1); opacity: 0.3; }
-      100% { transform: scale(1.05); opacity: 0.6; }
+      0% {
+        transform: scale(1);
+        opacity: 0.3;
+      }
+      100% {
+        transform: scale(1.05);
+        opacity: 0.6;
+      }
     }
 
     .avatar {
@@ -613,7 +695,9 @@ import { MatIconModule } from '@angular/material/icon';
       font-family: inherit;
       color: var(--text);
       font-size: 0.95rem;
-      transition: border-color 0.2s, box-shadow 0.2s;
+      transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     }
 
     .input-group input:focus {
@@ -632,13 +716,13 @@ import { MatIconModule } from '@angular/material/icon';
       font-weight: 600;
       font-size: 0.9rem;
     }
-    
+
     .alert-success {
       background: color-mix(in srgb, var(--success) 12%, transparent);
       color: color-mix(in srgb, var(--success) 80%, var(--text));
       border: 1px solid color-mix(in srgb, var(--success) 30%, transparent);
     }
-    
+
     .alert-error {
       background: color-mix(in srgb, var(--danger) 12%, transparent);
       color: color-mix(in srgb, var(--danger) 80%, var(--text));
@@ -669,7 +753,7 @@ import { MatIconModule } from '@angular/material/icon';
     .danger-btn:hover:not(:disabled) {
       background: color-mix(in srgb, var(--danger) 12%, transparent);
     }
-    
+
     .danger-btn:disabled {
       opacity: 0.5;
       cursor: not-allowed;
@@ -798,7 +882,7 @@ import { MatIconModule } from '@angular/material/icon';
       .profile-grid {
         grid-template-columns: 1fr;
       }
-      
+
       .sticky-snapshot {
         position: static;
       }
@@ -810,22 +894,22 @@ import { MatIconModule } from '@angular/material/icon';
         text-align: center;
         gap: 1.5rem;
       }
-      
+
       .identity-chips {
         justify-content: center;
       }
-      
+
       .form-actions {
         flex-direction: column;
       }
-      
+
       .form-actions button {
         width: 100%;
         justify-content: center;
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileComponent {
   private fb = inject(FormBuilder);
@@ -851,7 +935,7 @@ export class ProfileComponent {
     email: ['', [Validators.required, Validators.email]],
     currentPassword: [''],
     newPassword: [''],
-    confirmPassword: ['']
+    confirmPassword: [''],
   });
 
   private toInitials(name?: string): string {
@@ -871,7 +955,7 @@ export class ProfileComponent {
         email: this.user()?.email || '',
         currentPassword: '',
         newPassword: '',
-        confirmPassword: ''
+        confirmPassword: '',
       });
     }
   }
@@ -911,7 +995,10 @@ export class ProfileComponent {
     }
 
     if (hasPassword) {
-      const passResult = await this.authService.changePassword(currentPassword || '', newPassword || '');
+      const passResult = await this.authService.changePassword(
+        currentPassword || '',
+        newPassword || '',
+      );
       if (!passResult.ok) {
         this.saveError.set(passResult.message || 'Password update failed.');
         this.isSaving.set(false);
@@ -929,7 +1016,7 @@ export class ProfileComponent {
   }
 
   handleLogout(): void {
-    // Basic logout logic to demonstrate app capability 
+    // Basic logout logic to demonstrate app capability
     this.authService.logout();
   }
 
@@ -970,13 +1057,13 @@ export class ProfileComponent {
           const scale = Math.min(maxWidth / img.width, maxHeight / img.height, 1);
           const targetWidth = Math.round(img.width * scale);
           const targetHeight = Math.round(img.height * scale);
-          
+
           const canvas = document.createElement('canvas');
           canvas.width = targetWidth;
           canvas.height = targetHeight;
           const ctx = canvas.getContext('2d');
           if (!ctx) return reject(new Error('no context'));
-          
+
           ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
           // Auto-compress jpeg
           resolve(canvas.toDataURL('image/jpeg', 0.8));

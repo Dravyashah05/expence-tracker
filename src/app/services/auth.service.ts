@@ -6,7 +6,7 @@ import { User } from '../models/transaction';
 import { TransactionService } from './transaction.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private platformId = inject(PLATFORM_ID);
@@ -33,7 +33,7 @@ export class AuthService {
         this.http.post<{ user: Omit<User, 'password'> }>(`${this.apiBase}/auth/login`, {
           email,
           password,
-        })
+        }),
       );
 
       const user: User = {
@@ -59,7 +59,7 @@ export class AuthService {
           email,
           password,
           name,
-        })
+        }),
       );
 
       const user: User = {
@@ -78,7 +78,10 @@ export class AuthService {
     }
   }
 
-  async updateProfileRemote(name: string, email: string): Promise<{ ok: boolean; message?: string }> {
+  async updateProfileRemote(
+    name: string,
+    email: string,
+  ): Promise<{ ok: boolean; message?: string }> {
     const user = this.currentUser();
     if (!user) {
       return { ok: false, message: 'No active user.' };
@@ -88,8 +91,8 @@ export class AuthService {
       const response = await firstValueFrom(
         this.http.put<{ user: Omit<User, 'password'> }>(`${this.apiBase}/users/${user.id}`, {
           name,
-          email
-        })
+          email,
+        }),
       );
 
       const updated: User = {
@@ -108,7 +111,10 @@ export class AuthService {
     }
   }
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<{ ok: boolean; message?: string }> {
+  async changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ ok: boolean; message?: string }> {
     const user = this.currentUser();
     if (!user) {
       return { ok: false, message: 'No active user.' };
@@ -118,8 +124,8 @@ export class AuthService {
       await firstValueFrom(
         this.http.put(`${this.apiBase}/users/${user.id}/password`, {
           currentPassword,
-          newPassword
-        })
+          newPassword,
+        }),
       );
       return { ok: true };
     } catch (error: any) {
@@ -156,7 +162,7 @@ export class AuthService {
       return this.initPromise;
     }
 
-    this.initPromise = new Promise(resolve => {
+    this.initPromise = new Promise((resolve) => {
       if (!isPlatformBrowser(this.platformId)) {
         this.isInitialized.set(true);
         resolve(this.isLoggedIn());

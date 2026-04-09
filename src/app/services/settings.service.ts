@@ -27,7 +27,7 @@ export interface CurrencyOption {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class SettingsService {
   private platformId = inject(PLATFORM_ID);
@@ -43,53 +43,53 @@ export class SettingsService {
     bankAccounts: [],
     cards: [],
   };
-  
+
   // Material Design Color Themes
   private materialThemes: { [key: string]: ThemeColor } = {
-    'Blue': {
+    Blue: {
       name: 'Blue',
       primary: '#1f97d8',
       secondary: '#03dac6',
       tertiary: '#018786',
-      primaryLight: '#b3e5fc'
+      primaryLight: '#b3e5fc',
     },
-    'Purple': {
+    Purple: {
       name: 'Purple',
       primary: '#6f1dd6',
       secondary: '#03dac6',
       tertiary: '#018786',
-      primaryLight: '#f3e5f5'
+      primaryLight: '#f3e5f5',
     },
-    'Green': {
+    Green: {
       name: 'Green',
       primary: '#00b894',
       secondary: '#26c485',
       tertiary: '#00897b',
-      primaryLight: '#c8e6c9'
+      primaryLight: '#c8e6c9',
     },
-    'Red': {
+    Red: {
       name: 'Red',
       primary: '#cf3236',
       secondary: '#ff6e40',
       tertiary: '#d32f2f',
-      primaryLight: '#ffebee'
+      primaryLight: '#ffebee',
     },
-    'Orange': {
+    Orange: {
       name: 'Orange',
       primary: '#ff6d00',
       secondary: '#ff9100',
       tertiary: '#e65100',
-      primaryLight: '#ffe0b2'
+      primaryLight: '#ffe0b2',
     },
-    'Indigo': {
+    Indigo: {
       name: 'Indigo',
       primary: '#3f51b5',
       secondary: '#3f51b5',
       tertiary: '#303f9f',
-      primaryLight: '#e8eaf6'
-    }
+      primaryLight: '#e8eaf6',
+    },
   };
-  
+
   private settingsSignal = signal<Settings>(this.defaultSettings);
 
   settings = computed(() => this.settingsSignal());
@@ -97,7 +97,10 @@ export class SettingsService {
   // Computed signals for individual settings
   darkMode = computed(() => this.settingsSignal().darkMode);
   currency = computed(() => this.settingsSignal().currency);
-  currencySymbol = computed(() => this.currencies.find(option => option.code === this.currency())?.symbol || this.currency());
+  currencySymbol = computed(
+    () =>
+      this.currencies.find((option) => option.code === this.currency())?.symbol || this.currency(),
+  );
   notification = computed(() => this.settingsSignal().notification);
   autoSave = computed(() => this.settingsSignal().autoSave);
   transactionSounds = computed(() => this.settingsSignal().transactionSounds);
@@ -119,7 +122,7 @@ export class SettingsService {
     { code: 'SGD', symbol: 'S$', label: 'Singapore Dollar (SGD S$)' },
     { code: 'NZD', symbol: 'NZ$', label: 'New Zealand Dollar (NZD NZ$)' },
     { code: 'CHF', symbol: 'CHF', label: 'Swiss Franc (CHF)' },
-    { code: 'CNY', symbol: '\u00A5', label: 'Chinese Yuan (CNY \u00A5)' }
+    { code: 'CNY', symbol: '\u00A5', label: 'Chinese Yuan (CNY \u00A5)' },
   ];
   themeColors = Object.keys(this.materialThemes);
 
@@ -133,12 +136,12 @@ export class SettingsService {
     const currentSettings = this.settingsSignal();
     this.settingsSignal.set({ ...currentSettings, [key]: value });
     this.saveSettingsToStorage();
-    
+
     // Apply dark mode immediately
     if (key === 'darkMode') {
       this.applyDarkMode();
     }
-    
+
     // Apply theme color immediately
     if (key === 'themeColor') {
       this.applyThemeColor();
@@ -148,28 +151,28 @@ export class SettingsService {
   addBankAccount(name: string): void {
     const clean = name.trim();
     if (!clean) return;
-    if (this.bankAccounts().some(item => item.toLowerCase() === clean.toLowerCase())) return;
+    if (this.bankAccounts().some((item) => item.toLowerCase() === clean.toLowerCase())) return;
     this.updateSetting('bankAccounts', [...this.bankAccounts(), clean]);
   }
 
   removeBankAccount(name: string): void {
     this.updateSetting(
       'bankAccounts',
-      this.bankAccounts().filter(item => item !== name)
+      this.bankAccounts().filter((item) => item !== name),
     );
   }
 
   addCard(name: string): void {
     const clean = name.trim();
     if (!clean) return;
-    if (this.cards().some(item => item.toLowerCase() === clean.toLowerCase())) return;
+    if (this.cards().some((item) => item.toLowerCase() === clean.toLowerCase())) return;
     this.updateSetting('cards', [...this.cards(), clean]);
   }
 
   removeCard(name: string): void {
     this.updateSetting(
       'cards',
-      this.cards().filter(item => item !== name)
+      this.cards().filter((item) => item !== name),
     );
   }
 
@@ -177,7 +180,7 @@ export class SettingsService {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    
+
     const currencyFallback = this.getStoredCurrencyFallback();
     const stored = localStorage.getItem(this.settingsStorageKey);
     if (stored) {
@@ -198,7 +201,7 @@ export class SettingsService {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
-    
+
     const settings = this.settingsSignal();
     localStorage.setItem(this.settingsStorageKey, JSON.stringify(settings));
     localStorage.setItem(this.currencyStorageKey, settings.currency);
@@ -211,7 +214,7 @@ export class SettingsService {
 
     const isDarkMode = this.settingsSignal().darkMode;
     const root = document.documentElement;
-    
+
     if (isDarkMode) {
       root.classList.add('dark-mode');
     } else {
@@ -226,7 +229,7 @@ export class SettingsService {
 
     const theme = this.currentTheme();
     const root = document.documentElement;
-    
+
     if (theme) {
       root.style.setProperty('--primary', theme.primary);
       root.style.setProperty('--primary-strong', theme.tertiary || theme.primary);
@@ -240,14 +243,19 @@ export class SettingsService {
     return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     }).format(amount);
   }
 
   private normalizeSettings(raw: unknown, currencyFallback: string | null = null): Settings {
-    const value = (raw && typeof raw === 'object') ? raw as Partial<Settings> : {};
-    const requestedCurrency = typeof value.currency === 'string' ? value.currency : (currencyFallback || this.defaultSettings.currency);
-    const currency = this.isSupportedCurrency(requestedCurrency) ? requestedCurrency : this.defaultSettings.currency;
+    const value = raw && typeof raw === 'object' ? (raw as Partial<Settings>) : {};
+    const requestedCurrency =
+      typeof value.currency === 'string'
+        ? value.currency
+        : currencyFallback || this.defaultSettings.currency;
+    const currency = this.isSupportedCurrency(requestedCurrency)
+      ? requestedCurrency
+      : this.defaultSettings.currency;
 
     return {
       darkMode: Boolean(value.darkMode ?? this.defaultSettings.darkMode),
@@ -255,7 +263,8 @@ export class SettingsService {
       notification: Boolean(value.notification ?? this.defaultSettings.notification),
       autoSave: Boolean(value.autoSave ?? this.defaultSettings.autoSave),
       transactionSounds: Boolean(value.transactionSounds ?? this.defaultSettings.transactionSounds),
-      themeColor: typeof value.themeColor === 'string' ? value.themeColor : this.defaultSettings.themeColor,
+      themeColor:
+        typeof value.themeColor === 'string' ? value.themeColor : this.defaultSettings.themeColor,
       bankAccounts: this.normalizeList(value.bankAccounts),
       cards: this.normalizeList(value.cards),
     };
@@ -268,7 +277,7 @@ export class SettingsService {
   }
 
   private isSupportedCurrency(code: string): boolean {
-    return this.currencies.some(option => option.code === code);
+    return this.currencies.some((option) => option.code === code);
   }
 
   private normalizeList(values: unknown): string[] {
@@ -283,4 +292,3 @@ export class SettingsService {
     return [...unique];
   }
 }
-

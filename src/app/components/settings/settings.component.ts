@@ -14,7 +14,9 @@ import { AuthService } from '../../services/auth.service';
         <header class="page-header">
           <div>
             <h1 class="page-title">Settings</h1>
-            <p class="page-subtitle">Personalize your app experience and manage your payment sources.</p>
+            <p class="page-subtitle">
+              Personalize your app experience and manage your payment sources.
+            </p>
           </div>
           <div class="header-actions">
             <button class="btn-outline info-btn" type="button" (click)="openInfo()">
@@ -35,14 +37,18 @@ import { AuthService } from '../../services/auth.service';
                 <mat-icon class="panel-icon">palette</mat-icon>
                 <h2>Appearance</h2>
               </div>
-              
+
               <div class="setting-item switch-item">
                 <div class="setting-info">
                   <strong>Dark Mode</strong>
                   <small>Switch between light and dark themes</small>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" [checked]="settingsService.darkMode()" (change)="toggleDarkMode($event)">
+                  <input
+                    type="checkbox"
+                    [checked]="settingsService.darkMode()"
+                    (change)="toggleDarkMode($event)"
+                  />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -54,8 +60,8 @@ import { AuthService } from '../../services/auth.service';
                 </div>
                 <div class="theme-selector">
                   @for (color of settingsService.themeColors; track color) {
-                    <button 
-                      class="theme-btn" 
+                    <button
+                      class="theme-btn"
                       [class.active]="settingsService.themeColor() === color"
                       (click)="setThemeColor(color)"
                       [style.--btn-color]="getThemePreviewColor(color)"
@@ -73,26 +79,30 @@ import { AuthService } from '../../services/auth.service';
                 <mat-icon class="panel-icon">public</mat-icon>
                 <h2>Localization</h2>
               </div>
-              
+
               <div class="setting-item currency-section">
                 <div class="setting-info">
                   <strong>Primary Currency</strong>
                   <small>Used across all your transactions</small>
                 </div>
-                
+
                 <div class="currency-selector-wrap">
                   <div class="currency-preview-box">
                     <span class="currency-symbol">{{ settingsService.currencySymbol() }}</span>
                     <span class="currency-label">{{ selectedCurrencyLabel() }}</span>
                   </div>
-                  
-                  <select class="styled-select" [value]="settingsService.currency()" (change)="onCurrencyChange($event)">
+
+                  <select
+                    class="styled-select"
+                    [value]="settingsService.currency()"
+                    (change)="onCurrencyChange($event)"
+                  >
                     @for (curr of settingsService.currencies; track curr.code) {
                       <option [value]="curr.code">{{ curr.label }}</option>
                     }
                   </select>
                 </div>
-                
+
                 <div class="quick-currencies mt-2">
                   <span class="hint-text">Quick select:</span>
                   @for (code of quickCurrencyCodes; track code) {
@@ -114,7 +124,11 @@ import { AuthService } from '../../services/auth.service';
                   <small>Receive updates about your budget</small>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" [checked]="settingsService.notification()" (change)="toggleNotifications($event)">
+                  <input
+                    type="checkbox"
+                    [checked]="settingsService.notification()"
+                    (change)="toggleNotifications($event)"
+                  />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -125,7 +139,11 @@ import { AuthService } from '../../services/auth.service';
                   <small>Automatically save changes to the cloud</small>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" [checked]="settingsService.autoSave()" (change)="toggleAutoSave($event)">
+                  <input
+                    type="checkbox"
+                    [checked]="settingsService.autoSave()"
+                    (change)="toggleAutoSave($event)"
+                  />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -136,7 +154,11 @@ import { AuthService } from '../../services/auth.service';
                   <small>Play audio feedback on new entries</small>
                 </div>
                 <label class="toggle-switch">
-                  <input type="checkbox" [checked]="settingsService.transactionSounds()" (change)="toggleTransactionSounds($event)">
+                  <input
+                    type="checkbox"
+                    [checked]="settingsService.transactionSounds()"
+                    (change)="toggleTransactionSounds($event)"
+                  />
                   <span class="slider"></span>
                 </label>
               </div>
@@ -146,7 +168,11 @@ import { AuthService } from '../../services/auth.service';
                   <strong>Export Data</strong>
                   <small>Download your transaction data in multiple formats</small>
                 </div>
-                <a routerLink="/export" class="btn-outline" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; text-decoration: none; border-radius: 8px; border: 1px solid var(--line); color: var(--text);">
+                <a
+                  routerLink="/export"
+                  class="btn-outline"
+                  style="display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1rem; text-decoration: none; border-radius: 8px; border: 1px solid var(--line); color: var(--text);"
+                >
                   <mat-icon>download</mat-icon>
                   Export
                 </a>
@@ -166,7 +192,7 @@ import { AuthService } from '../../services/auth.service';
               <div class="user-info">
                 <div class="avatar-circle">
                   @if (authService.user()?.avatarUrl) {
-                    <img [src]="authService.user()?.avatarUrl" alt="Profile">
+                    <img [src]="authService.user()?.avatarUrl" alt="Profile" />
                   } @else {
                     {{ getInitials(authService.user()?.name) }}
                   }
@@ -198,7 +224,7 @@ import { AuthService } from '../../services/auth.service';
                   <mat-icon>account_balance</mat-icon>
                   Bank Accounts
                 </h3>
-                
+
                 <div class="add-source-box">
                   <input
                     type="text"
@@ -207,12 +233,19 @@ import { AuthService } from '../../services/auth.service';
                     placeholder="E.g. Chase Checking"
                     (keydown.enter)="addBankAccount($event)"
                     class="source-input"
+                  />
+                  <button
+                    type="button"
+                    class="btn-add"
+                    (click)="addBankAccount()"
+                    [disabled]="!canAddBankAccount(newBankAccount)"
                   >
-                  <button type="button" class="btn-add" (click)="addBankAccount()" [disabled]="!canAddBankAccount(newBankAccount)">
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
-                @if (bankInputError) { <p class="error-msg">{{ bankInputError }}</p> }
+                @if (bankInputError) {
+                  <p class="error-msg">{{ bankInputError }}</p>
+                }
 
                 <div class="source-items">
                   @if (settingsService.bankAccounts().length === 0) {
@@ -221,16 +254,38 @@ import { AuthService } from '../../services/auth.service';
                     @for (account of settingsService.bankAccounts(); track account) {
                       <div class="source-item">
                         @if (editingBankAccount === account) {
-                          <input #editBank class="edit-input" [value]="editBankInput" (input)="editBankInput = editBank.value" (keydown.enter)="saveEditBankAccount(account)">
+                          <input
+                            #editBank
+                            class="edit-input"
+                            [value]="editBankInput"
+                            (input)="editBankInput = editBank.value"
+                            (keydown.enter)="saveEditBankAccount(account)"
+                          />
                           <div class="item-actions">
-                            <button class="icon-btn success" (click)="saveEditBankAccount(account)"><mat-icon>check</mat-icon></button>
-                            <button class="icon-btn" (click)="cancelEditBankAccount()"><mat-icon>close</mat-icon></button>
+                            <button class="icon-btn success" (click)="saveEditBankAccount(account)">
+                              <mat-icon>check</mat-icon>
+                            </button>
+                            <button class="icon-btn" (click)="cancelEditBankAccount()">
+                              <mat-icon>close</mat-icon>
+                            </button>
                           </div>
                         } @else {
                           <span class="source-name">{{ account }}</span>
                           <div class="item-actions">
-                            <button class="icon-btn" (click)="startEditBankAccount(account)" title="Edit"><mat-icon>edit</mat-icon></button>
-                            <button class="icon-btn danger" (click)="removeBankAccount(account)" title="Delete"><mat-icon>delete</mat-icon></button>
+                            <button
+                              class="icon-btn"
+                              (click)="startEditBankAccount(account)"
+                              title="Edit"
+                            >
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button
+                              class="icon-btn danger"
+                              (click)="removeBankAccount(account)"
+                              title="Delete"
+                            >
+                              <mat-icon>delete</mat-icon>
+                            </button>
                           </div>
                         }
                       </div>
@@ -239,7 +294,7 @@ import { AuthService } from '../../services/auth.service';
                 </div>
               </div>
 
-              <hr class="divider">
+              <hr class="divider" />
 
               <!-- Credit Cards -->
               <div class="source-group">
@@ -247,7 +302,7 @@ import { AuthService } from '../../services/auth.service';
                   <mat-icon>credit_card</mat-icon>
                   Credit/Debit Cards
                 </h3>
-                
+
                 <div class="add-source-box">
                   <input
                     type="text"
@@ -256,12 +311,19 @@ import { AuthService } from '../../services/auth.service';
                     placeholder="E.g. Visa x4421"
                     (keydown.enter)="addCard($event)"
                     class="source-input"
+                  />
+                  <button
+                    type="button"
+                    class="btn-add"
+                    (click)="addCard()"
+                    [disabled]="!canAddCard(newCard)"
                   >
-                  <button type="button" class="btn-add" (click)="addCard()" [disabled]="!canAddCard(newCard)">
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
-                @if (cardInputError) { <p class="error-msg">{{ cardInputError }}</p> }
+                @if (cardInputError) {
+                  <p class="error-msg">{{ cardInputError }}</p>
+                }
 
                 <div class="source-items">
                   @if (settingsService.cards().length === 0) {
@@ -270,16 +332,34 @@ import { AuthService } from '../../services/auth.service';
                     @for (card of settingsService.cards(); track card) {
                       <div class="source-item">
                         @if (editingCard === card) {
-                          <input #editCardEl class="edit-input" [value]="editCardInput" (input)="editCardInput = editCardEl.value" (keydown.enter)="saveEditCard(card)">
+                          <input
+                            #editCardEl
+                            class="edit-input"
+                            [value]="editCardInput"
+                            (input)="editCardInput = editCardEl.value"
+                            (keydown.enter)="saveEditCard(card)"
+                          />
                           <div class="item-actions">
-                            <button class="icon-btn success" (click)="saveEditCard(card)"><mat-icon>check</mat-icon></button>
-                            <button class="icon-btn" (click)="cancelEditCard()"><mat-icon>close</mat-icon></button>
+                            <button class="icon-btn success" (click)="saveEditCard(card)">
+                              <mat-icon>check</mat-icon>
+                            </button>
+                            <button class="icon-btn" (click)="cancelEditCard()">
+                              <mat-icon>close</mat-icon>
+                            </button>
                           </div>
                         } @else {
                           <span class="source-name">{{ card }}</span>
                           <div class="item-actions">
-                            <button class="icon-btn" (click)="startEditCard(card)" title="Edit"><mat-icon>edit</mat-icon></button>
-                            <button class="icon-btn danger" (click)="removeCard(card)" title="Delete"><mat-icon>delete</mat-icon></button>
+                            <button class="icon-btn" (click)="startEditCard(card)" title="Edit">
+                              <mat-icon>edit</mat-icon>
+                            </button>
+                            <button
+                              class="icon-btn danger"
+                              (click)="removeCard(card)"
+                              title="Delete"
+                            >
+                              <mat-icon>delete</mat-icon>
+                            </button>
                           </div>
                         }
                       </div>
@@ -287,7 +367,6 @@ import { AuthService } from '../../services/auth.service';
                   }
                 </div>
               </div>
-
             </section>
           </div>
         </div>
@@ -300,9 +379,14 @@ import { AuthService } from '../../services/auth.service';
                 <button class="icon-btn" (click)="closeInfo()"><mat-icon>close</mat-icon></button>
               </div>
               <div class="modal-body">
-                <p><strong>Rupee Expense Tracker</strong> is a smart personal finance tool created natively for the modern web.</p>
+                <p>
+                  <strong>Rupee Expense Tracker</strong> is a smart personal finance tool created
+                  natively for the modern web.
+                </p>
                 <div class="social-links mt-3">
-                  <a [href]="socialLinks.github" target="_blank" class="btn-outline">View on GitHub</a>
+                  <a [href]="socialLinks.github" target="_blank" class="btn-outline"
+                    >View on GitHub</a
+                  >
                 </div>
               </div>
             </section>
@@ -318,8 +402,14 @@ import { AuthService } from '../../services/auth.service';
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .page-header {
@@ -350,7 +440,7 @@ import { AuthService } from '../../services/auth.service';
       gap: 0.4rem;
       padding: 0.6rem 1.2rem;
     }
-    
+
     .header-actions .btn-outline mat-icon {
       font-size: 1.2rem;
       width: 1.2rem;
@@ -443,23 +533,26 @@ import { AuthService } from '../../services/auth.service';
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background-color: var(--line);
-      transition: .3s;
+      transition: 0.3s;
       border-radius: 34px;
     }
 
     .slider:before {
       position: absolute;
-      content: "";
+      content: '';
       height: 20px;
       width: 20px;
       left: 3px;
       bottom: 3px;
       background-color: white;
-      transition: .3s;
+      transition: 0.3s;
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
     input:checked + .slider {
@@ -489,7 +582,9 @@ import { AuthService } from '../../services/auth.service';
       align-items: center;
       justify-content: center;
       color: white;
-      transition: transform 0.2s, border-color 0.2s;
+      transition:
+        transform 0.2s,
+        border-color 0.2s;
     }
 
     .theme-btn:hover {
@@ -542,14 +637,18 @@ import { AuthService } from '../../services/auth.service';
       cursor: pointer;
       appearance: none;
     }
-    
+
     .styled-select:focus {
       border-color: var(--primary);
       outline: none;
     }
 
-    .mt-2 { margin-top: 0.8rem; }
-    .mt-3 { margin-top: 1.2rem; }
+    .mt-2 {
+      margin-top: 0.8rem;
+    }
+    .mt-3 {
+      margin-top: 1.2rem;
+    }
 
     .quick-chip {
       background: var(--surface-soft);
@@ -712,7 +811,7 @@ import { AuthService } from '../../services/auth.service';
     .btn-add:hover {
       filter: brightness(1.1);
     }
-    
+
     .btn-add:disabled {
       background: var(--line);
       cursor: not-allowed;
@@ -777,13 +876,27 @@ import { AuthService } from '../../services/auth.service';
       align-items: center;
       justify-content: center;
     }
-    
-    .icon-btn mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
-    
-    .icon-btn:hover { background: var(--line); color: var(--text); }
-    .icon-btn.danger:hover { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); }
-    .icon-btn.success { color: var(--success); }
-    .icon-btn.success:hover { background: color-mix(in srgb, var(--success) 15%, transparent); }
+
+    .icon-btn mat-icon {
+      font-size: 1.1rem;
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+
+    .icon-btn:hover {
+      background: var(--line);
+      color: var(--text);
+    }
+    .icon-btn.danger:hover {
+      background: color-mix(in srgb, var(--danger) 15%, transparent);
+      color: var(--danger);
+    }
+    .icon-btn.success {
+      color: var(--success);
+    }
+    .icon-btn.success:hover {
+      background: color-mix(in srgb, var(--success) 15%, transparent);
+    }
 
     .error-msg {
       color: var(--danger);
@@ -815,7 +928,7 @@ import { AuthService } from '../../services/auth.service';
       align-items: center;
       gap: 0.5rem;
     }
-    
+
     .danger-btn:hover {
       background: color-mix(in srgb, var(--danger) 10%, transparent);
     }
@@ -824,7 +937,7 @@ import { AuthService } from '../../services/auth.service';
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.5);
+      background: rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(4px);
       z-index: 1000;
       display: flex;
@@ -845,7 +958,9 @@ import { AuthService } from '../../services/auth.service';
       margin-bottom: 1rem;
     }
 
-    .modal-head h2 { margin: 0; }
+    .modal-head h2 {
+      margin: 0;
+    }
 
     @media (max-width: 900px) {
       .settings-layout {
@@ -853,38 +968,38 @@ import { AuthService } from '../../services/auth.service';
       }
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsComponent {
   settingsService = inject(SettingsService);
   authService = inject(AuthService);
-  
+
   quickCurrencyCodes = ['USD', 'INR', 'EUR', 'GBP'];
-  
+
   newBankAccount = '';
   newCard = '';
   bankInputError = '';
   cardInputError = '';
-  
+
   editingBankAccount: string | null = null;
   editBankInput = '';
-  
+
   editingCard: string | null = null;
   editCardInput = '';
 
   showInfoModal = false;
   socialLinks = {
-    github: 'https://github.com/'
+    github: 'https://github.com/',
   };
 
   getThemePreviewColor(colorName: string): string {
     const map: Record<string, string> = {
-      'Blue': '#1f97d8',
-      'Purple': '#6f1dd6',
-      'Green': '#00b894',
-      'Red': '#cf3236',
-      'Orange': '#ff6d00',
-      'Indigo': '#3f51b5'
+      Blue: '#1f97d8',
+      Purple: '#6f1dd6',
+      Green: '#00b894',
+      Red: '#cf3236',
+      Orange: '#ff6d00',
+      Indigo: '#3f51b5',
     };
     return map[colorName] || '#1f97d8';
   }
@@ -914,7 +1029,7 @@ export class SettingsComponent {
 
   selectedCurrencyLabel(): string {
     const code = this.settingsService.currency();
-    return this.settingsService.currencies.find(c => c.code === code)?.label || code;
+    return this.settingsService.currencies.find((c) => c.code === code)?.label || code;
   }
 
   toggleNotifications(event: Event): void {
@@ -939,7 +1054,7 @@ export class SettingsComponent {
     this.settingsService.updateSetting('autoSave', true);
     this.settingsService.updateSetting('transactionSounds', true);
     this.settingsService.updateSetting('themeColor', 'Blue');
-    // We optionally let users keep payment sources when resetting appearance 
+    // We optionally let users keep payment sources when resetting appearance
     // but default behavior previously reset them
   }
 
@@ -979,7 +1094,7 @@ export class SettingsComponent {
       this.cancelEditBankAccount();
       return;
     }
-    const existing = this.settingsService.bankAccounts().filter(a => a !== account);
+    const existing = this.settingsService.bankAccounts().filter((a) => a !== account);
     const error = this.validateSource(value, existing);
     if (error) {
       this.bankInputError = error;
@@ -1038,7 +1153,7 @@ export class SettingsComponent {
       this.cancelEditCard();
       return;
     }
-    const existing = this.settingsService.cards().filter(c => c !== card);
+    const existing = this.settingsService.cards().filter((c) => c !== card);
     const error = this.validateSource(value, existing);
     if (error) {
       this.cardInputError = error;
@@ -1079,7 +1194,7 @@ export class SettingsComponent {
   private validateSource(value: string, existing: string[]): string | null {
     if (!value) return 'Please enter a name.';
     if (value.length < 3) return 'Use at least 3 characters.';
-    const duplicate = existing.some(item => item.toLowerCase() === value.toLowerCase());
+    const duplicate = existing.some((item) => item.toLowerCase() === value.toLowerCase());
     if (duplicate) return 'This source already exists.';
     return null;
   }

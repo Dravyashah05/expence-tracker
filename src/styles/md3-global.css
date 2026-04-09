@@ -95,7 +95,9 @@ h6 {
   font-weight: 600;
   padding: 0.7rem 1.1rem;
   cursor: pointer;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .btn-primary:hover {

@@ -11,7 +11,7 @@ import { LoaderComponent } from './components/loader/loader.component';
   standalone: true,
   imports: [RouterOutlet, CommonModule, NavbarComponent, LoaderComponent],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
   private settingsService = inject(SettingsService);
@@ -46,4 +46,3 @@ export class App {
     });
   }
 }
-

@@ -5,7 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { Transaction } from '../models/transaction';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TransactionService {
   private transactions = signal<Transaction[]>([]);
@@ -18,8 +18,8 @@ export class TransactionService {
 
   // Computed signals
   allTransactions = computed(() => this.transactions());
-  expenses = computed(() => this.transactions().filter(t => t.type === 'expense'));
-  income = computed(() => this.transactions().filter(t => t.type === 'income'));
+  expenses = computed(() => this.transactions().filter((t) => t.type === 'expense'));
+  income = computed(() => this.transactions().filter((t) => t.type === 'income'));
   totalExpenses = computed(() => this.expenses().reduce((sum, t) => sum + t.amount, 0));
   totalIncome = computed(() => this.income().reduce((sum, t) => sum + t.amount, 0));
   netBalance = computed(() => this.totalIncome() - this.totalExpenses());
@@ -54,18 +54,21 @@ export class TransactionService {
       return false;
     }
 
-    this.mutationCount.update(count => count + 1);
+    this.mutationCount.update((count) => count + 1);
     try {
       const response = await firstValueFrom(
-        this.http.post<{ transaction: Transaction }>(`${this.apiBase}/transactions/${userId}`, transaction)
+        this.http.post<{ transaction: Transaction }>(
+          `${this.apiBase}/transactions/${userId}`,
+          transaction,
+        ),
       );
 
-      this.transactions.update(trans => [response.transaction, ...trans]);
+      this.transactions.update((trans) => [response.transaction, ...trans]);
       return true;
     } catch {
       return false;
     } finally {
-      this.mutationCount.update(count => Math.max(0, count - 1));
+      this.mutationCount.update((count) => Math.max(0, count - 1));
     }
   }
 
@@ -75,15 +78,15 @@ export class TransactionService {
       return false;
     }
 
-    this.mutationCount.update(count => count + 1);
+    this.mutationCount.update((count) => count + 1);
     try {
       await firstValueFrom(this.http.delete(`${this.apiBase}/transactions/${userId}/${id}`));
-      this.transactions.update(trans => trans.filter(t => t.id !== id));
+      this.transactions.update((trans) => trans.filter((t) => t.id !== id));
       return true;
     } catch {
       return false;
     } finally {
-      this.mutationCount.update(count => Math.max(0, count - 1));
+      this.mutationCount.update((count) => Math.max(0, count - 1));
     }
   }
 
@@ -93,29 +96,32 @@ export class TransactionService {
       return false;
     }
 
-    this.mutationCount.update(count => count + 1);
+    this.mutationCount.update((count) => count + 1);
     try {
       const response = await firstValueFrom(
-        this.http.put<{ transaction: Transaction }>(`${this.apiBase}/transactions/${userId}/${id}`, updates)
+        this.http.put<{ transaction: Transaction }>(
+          `${this.apiBase}/transactions/${userId}/${id}`,
+          updates,
+        ),
       );
 
-      this.transactions.update(trans =>
-        trans.map(t => (t.id === id ? response.transaction : t))
+      this.transactions.update((trans) =>
+        trans.map((t) => (t.id === id ? response.transaction : t)),
       );
       return true;
     } catch {
       return false;
     } finally {
-      this.mutationCount.update(count => Math.max(0, count - 1));
+      this.mutationCount.update((count) => Math.max(0, count - 1));
     }
   }
 
   getTransactionsByCategory(category: string): Transaction[] {
-    return this.transactions().filter(t => t.category === category);
+    return this.transactions().filter((t) => t.category === category);
   }
 
   getTransactionsByDateRange(startDate: Date, endDate: Date): Transaction[] {
-    return this.transactions().filter(t => {
+    return this.transactions().filter((t) => {
       const transDate = new Date(t.date);
       return transDate >= startDate && transDate <= endDate;
     });
@@ -123,7 +129,7 @@ export class TransactionService {
 
   getCategoryBreakdown(): Record<string, number> {
     const breakdown: Record<string, number> = {};
-    this.transactions().forEach(t => {
+    this.transactions().forEach((t) => {
       breakdown[t.category] = (breakdown[t.category] || 0) + t.amount;
     });
     return breakdown;
@@ -134,16 +140,16 @@ export class TransactionService {
   }
 
   private async loadTransactions(userId: string): Promise<void> {
-    this.loadCount.update(count => count + 1);
+    this.loadCount.update((count) => count + 1);
     try {
       const response = await firstValueFrom(
-        this.http.get<{ transactions: Transaction[] }>(`${this.apiBase}/transactions/${userId}`)
+        this.http.get<{ transactions: Transaction[] }>(`${this.apiBase}/transactions/${userId}`),
       );
       this.transactions.set(response.transactions || []);
     } catch {
       this.transactions.set([]);
     } finally {
-      this.loadCount.update(count => Math.max(0, count - 1));
+      this.loadCount.update((count) => Math.max(0, count - 1));
     }
   }
 }

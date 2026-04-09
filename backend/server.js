@@ -22,7 +22,9 @@ function loadFirebaseCredential() {
   ].filter(Boolean);
 
   for (const candidate of candidatePaths) {
-    const resolved = path.isAbsolute(candidate) ? candidate : path.resolve(process.cwd(), candidate);
+    const resolved = path.isAbsolute(candidate)
+      ? candidate
+      : path.resolve(process.cwd(), candidate);
     if (fs.existsSync(resolved)) {
       const raw = fs.readFileSync(resolved, 'utf8');
       return admin.credential.cert(JSON.parse(raw));
@@ -42,7 +44,7 @@ function loadFirebaseCredential() {
   }
 
   throw new Error(
-    'Firebase credentials are missing. Configure FIREBASE_SERVICE_ACCOUNT_PATH (or GOOGLE_APPLICATION_CREDENTIALS) to a service-account JSON file.'
+    'Firebase credentials are missing. Configure FIREBASE_SERVICE_ACCOUNT_PATH (or GOOGLE_APPLICATION_CREDENTIALS) to a service-account JSON file.',
   );
 }
 
@@ -60,7 +62,9 @@ app.get('/api/health', (_req, res) => {
 });
 
 function validateRequired(values) {
-  return values.every((value) => value !== undefined && value !== null && String(value).trim() !== '');
+  return values.every(
+    (value) => value !== undefined && value !== null && String(value).trim() !== '',
+  );
 }
 
 function userTransactionsRef(userId) {
@@ -98,7 +102,11 @@ app.post('/api/auth/register', async (req, res) => {
 
     const normalizedEmail = String(email).trim().toLowerCase();
 
-    const existing = await db.collection('users').where('email', '==', normalizedEmail).limit(1).get();
+    const existing = await db
+      .collection('users')
+      .where('email', '==', normalizedEmail)
+      .limit(1)
+      .get();
     if (!existing.empty) {
       return res.status(409).json({ message: 'Email already exists.' });
     }
@@ -189,7 +197,11 @@ app.put('/api/users/:userId', async (req, res) => {
         return res.status(400).json({ message: 'Email is required.' });
       }
 
-      const existing = await db.collection('users').where('email', '==', normalizedEmail).limit(1).get();
+      const existing = await db
+        .collection('users')
+        .where('email', '==', normalizedEmail)
+        .limit(1)
+        .get();
       if (!existing.empty && existing.docs[0].id !== userId) {
         return res.status(409).json({ message: 'Email already exists.' });
       }
