@@ -45,3 +45,5 @@ Thumbs.db
 
 .env
 backend/firebase-service-account.json
+.vercel
+.env*
